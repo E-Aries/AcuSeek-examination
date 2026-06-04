@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="take-exam">
     <!-- Top bar: Timer + Progress -->
     <header class="exam-topbar">
@@ -43,11 +43,11 @@
                 v-for="(opt, i) in currentQuestion.options"
                 :key="i"
                 class="q-option"
-                :class="{ selected: answers[currentIndex] === opt.value }"
-                @click="selectOption(opt.value)"
+                :class="{ selected: answers[currentIndex] === opt.label }"
+                @click="selectOption(opt.label)"
               >
                 <div class="q-option-marker">
-                  <div v-if="answers[currentIndex] === opt.value" class="marker-dot active"></div>
+                  <div v-if="answers[currentIndex] === opt.label" class="marker-dot active"></div>
                   <div v-else class="marker-dot"></div>
                 </div>
                 <span class="q-option-label">{{ opt.label }}</span>
@@ -61,11 +61,11 @@
                 v-for="(opt, i) in currentQuestion.options"
                 :key="i"
                 class="q-option"
-                :class="{ selected: multiSelected.includes(opt.value) }"
-                @click="toggleMulti(opt.value)"
+                :class="{ selected: multiSelected.includes(opt.label) }"
+                @click="toggleMulti(opt.label)"
               >
                 <div class="q-option-marker multi">
-                  <el-icon v-if="multiSelected.includes(opt.value)" :size="14"><Check /></el-icon>
+                  <el-icon v-if="multiSelected.includes(opt.label)" :size="14"><Check /></el-icon>
                 </div>
                 <span class="q-option-label">{{ opt.label }}</span>
                 <span class="q-option-text">{{ opt.text }}</span>
@@ -160,6 +160,9 @@ const route = useRoute();
 const router = useRouter();
 const currentIndex = ref(0);
 const answers = ref({});
+const multiSelected = ref([]);
+const blankAnswer = ref("");
+const essayAnswer = ref("");
 const showSubmitConfirm = ref(false);
 const questions = ref([]);
 const examName = ref("加载中...");
@@ -198,12 +201,31 @@ function isAnswered(i) {
 function selectOption(value) { answers.value[currentIndex.value] = value; }
 function toggleMulti(value) {
   const arr = answers.value[currentIndex.value] || [];
-  answers.value[currentIndex.value] = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
+  const newArr = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
+  answers.value[currentIndex.value] = newArr;
+  multiSelected.value = newArr;
 }
 
-function goToQuestion(i) { currentIndex.value = i; }
-function prevQuestion() { if (currentIndex.value > 0) currentIndex.value--; }
-function nextQuestion() { if (currentIndex.value < questions.value.length - 1) currentIndex.value++; }
+function updateAnswer() {
+  const q = currentQuestion.value;
+  if (q.type === "填空") answers.value[currentIndex.value] = blankAnswer.value;
+  if (q.type === "简答") answers.value[currentIndex.value] = essayAnswer.value;
+}
+function saveCurrentAnswer() {
+  const q = currentQuestion.value;
+  if (q.type === "填空") answers.value[currentIndex.value] = blankAnswer.value;
+  else if (q.type === "简答") answers.value[currentIndex.value] = essayAnswer.value;
+}
+function loadCurrentAnswer() {
+  const q = currentQuestion.value;
+  if (q.type === "多选") multiSelected.value = answers.value[currentIndex.value] || [];
+  else if (q.type === "填空") blankAnswer.value = answers.value[currentIndex.value] || "";
+  else if (q.type === "简答") essayAnswer.value = answers.value[currentIndex.value] || "";
+  else multiSelected.value = [];
+}
+function goToQuestion(i) { saveCurrentAnswer(); currentIndex.value = i; loadCurrentAnswer(); }
+function prevQuestion() { saveCurrentAnswer(); if (currentIndex.value > 0) currentIndex.value--; loadCurrentAnswer(); }
+function nextQuestion() { saveCurrentAnswer(); if (currentIndex.value < questions.value.length - 1) currentIndex.value++; loadCurrentAnswer(); }
 function handleSubmit() { showSubmitConfirm.value = true; }
 
 async function confirmSubmit() {

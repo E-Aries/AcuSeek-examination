@@ -39,3 +39,9 @@ exam.db
 .env
 *.env.local
 
+
+# Analysis
+.understand-anything/
+start.bat
+start_vite.vbs
+

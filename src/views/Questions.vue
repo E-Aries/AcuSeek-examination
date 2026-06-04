@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="questions-page">
     <!-- Toolbar -->
     <div class="toolbar">
@@ -32,27 +32,27 @@
 
     <!-- Table -->
     <el-card shadow="never" class="table-card">
-      <el-table :data="filteredQuestions" stripe style="width: 100%" @row-click="handleRowClick">
+      <el-table :data="filteredQuestions" stripe style="width: 100%" >
         <el-table-column label="题目" min-width="320">
-          <template #default="{ row }">
+          <template #default="scope">
             <div class="question-cell">
-              <el-tag :type="typeTag(row.type)" size="small" effect="plain" class="q-type">{{ row.type }}</el-tag>
-              <span class="q-text">{{ row.content }}</span>
+              <el-tag :type="typeTag(scope.row.type)" size="small" effect="plain" class="q-type">{{ scope.row.type }}</el-tag>
+              <span class="q-text">{{ scope.row.content }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column prop="category" label="分类" width="100" />
         <el-table-column label="难度" width="80">
-          <template #default="{ row }">
-            <el-rate v-model="row.difficulty" :max="3" disabled :colors="['var(--c-success)', 'var(--c-warning)', 'var(--c-danger)']" size="small" />
+          <template #default="scope">
+            <el-rate v-model="scope.row.difficulty" :max="3" disabled :colors="['var(--c-success)', 'var(--c-warning)', 'var(--c-danger)']" size="small" />
           </template>
         </el-table-column>
         <el-table-column label="使用次数" width="80" align="right" prop="used" />
         <el-table-column label="最近使用" width="90" prop="lastUsed" />
         <el-table-column label="操作" width="100" fixed="right">
-          <template #default>
-            <el-button text type="primary" size="small">编辑</el-button>
-            <el-button text type="danger" size="small">删除</el-button>
+          <template #default="scope">
+            <el-button text type="primary" size="small" @click="editQuestion(scope.row)">编辑</el-button>
+            <el-button text type="danger" size="small" @click="deleteQuestion(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -112,8 +112,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showDialog = false">取消</el-button>
-        <el-button type="primary" @click="showDialog = false">保存</el-button>
+        <el-button @click="showDialog = false; editingId = null">取消</el-button>
+        <el-button type="primary" @click="saveQuestion">保存</el-button>
       </template>
     </el-dialog>
   </div>
