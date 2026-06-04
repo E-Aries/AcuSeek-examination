@@ -93,3 +93,31 @@ def batch_delete_questions(data: dict, db = Depends(get_db)):
     deleted = db.query(Question).filter(Question.id.in_(ids)).delete(synchronize_session=False)
     db.commit()
     return {"deleted": deleted, "message": f"成功删除 {deleted} 道题目"}
+
+
+@router.post("/batch-export")
+def batch_export_questions(data: dict, db = Depends(get_db)):
+    import json, csv, io
+    from fastapi.responses import StreamingResponse
+    ids = data.get("ids", [])
+    query = db.query(Question)
+    if ids:
+        query = query.filter(Question.id.in_(ids))
+    questions = query.order_by(Question.id).all()
+    output = io.StringIO()
+    output.write("\ufeff")
+    writer = csv.writer(output)
+    writer.writerow(["题型", "分类", "题目内容", "选项", "答案", "解析", "难度", "分值"])
+    for q in questions:
+        writer.writerow([q.type, q.category, q.content, json.dumps(q.options or [], ensure_ascii=False) if q.options else "", q.answer or "", q.explanation or "", q.difficulty, q.score])
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=questions_export.csv"})
+
+@router.put("/batch-category")
+def batch_update_category(data: dict, db = Depends(get_db)):
+    ids = data.get("ids", [])
+    category = data.get("category", "")
+    if not ids or not category:
+        raise HTTPException(status_code=400, detail="请选择题目并提供分类")
+    db.query(Question).filter(Question.id.in_(ids)).update({"category": category}, synchronize_session=False)
+    db.commit()
+    return {"message": f"成功更新 {len(ids)} 道题目的分类"}

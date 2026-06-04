@@ -11,7 +11,11 @@ async function request(path, options = {}) {
     window.location.href = "/login";
     throw new Error("Unauthorized");
   }
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.detail || "请求失败");
+  }
+  return data;
 }
 
 export const api = {
@@ -26,6 +30,15 @@ export const api = {
     create: (data) => request("/questions", { method: "POST", body: JSON.stringify(data) }),
     update: (id, data) => request(`/questions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     delete: (id) => request(`/questions/${id}`, { method: "DELETE" }),
+    batchDelete: (ids) => request("/questions/batch-delete", { method: "POST", body: JSON.stringify({ ids }) }),
+    batchExport: async (ids) => { const token = localStorage.getItem("token"); const headers = {"Content-Type": "application/json"}; if (token) headers["Authorization"] = "Bearer " + token; const resp = await fetch("/api/questions/batch-export", { method: "POST", headers, body: JSON.stringify({ ids }) }); return resp; },
+    batchCategory: (ids, category) => request("/questions/batch-category", { method: "PUT", body: JSON.stringify({ ids, category }) }),
+  },
+  categories: {
+    list: () => request("/categories"),
+    create: (name, sort) => request("/categories", { method: "POST", body: JSON.stringify({ name, sort }) }),
+    update: (id, data) => request(`/categories/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    delete: (id) => request(`/categories/${id}`, { method: "DELETE" }),
   },
   dashboard: {
     get: () => request("/dashboard"),

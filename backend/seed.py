@@ -1,6 +1,6 @@
 import hashlib, secrets
 from database import SessionLocal, engine, Base
-from models import User, Question
+from models import User, Question, Category
 
 Base.metadata.create_all(bind=engine)
 
@@ -32,6 +32,13 @@ try:
         ]
         for q in qs: db.add(q)
         print("Questions created!")
+    if not db.query(Category).first():
+        db.add(Category(name="售后流程", sort=1))
+        db.add(Category(name="产品知识", sort=2))
+        db.add(Category(name="故障处理", sort=3))
+        db.add(Category(name="服务规范", sort=4))
+        print("Categories created!")
+
     db.commit()
     print("Seed data created successfully!")
 finally:

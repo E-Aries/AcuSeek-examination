@@ -50,6 +50,12 @@ const routes = [
         component: () => import("../views/ResultDetail.vue"),
       },
       {
+        path: "categories",
+        name: "Categories",
+        component: () => import("../views/Categories.vue"),
+        meta: { requiresAdmin: true },
+      },
+      {
         path: "users",
         name: "Users",
         component: () => import("../views/Users.vue"),

@@ -48,6 +48,10 @@
           <el-icon><DataAnalysis /></el-icon>
           <template #title>成绩查询</template>
         </el-menu-item>
+        <el-menu-item v-if="userRole === 'admin'" index="/categories">
+          <el-icon><Collection /></el-icon>
+          <template #title>分类管理</template>
+        </el-menu-item>
         <el-menu-item v-if="userRole === 'admin'" index="/users">
           <el-icon><User /></el-icon>
           <template #title>用户管理</template>
@@ -147,6 +151,7 @@ const routeTitles = {
   TakeExam: "在线考试",
   Results: "成绩查询",
   ResultDetail: "成绩详情",
+  Categories: "分类管理",
 };
 
 const pageTitle = computed(() => routeTitles[route.name] || "硕讯科技");

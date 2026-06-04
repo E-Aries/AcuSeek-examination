@@ -23,16 +23,23 @@
         <el-radio-button value="简答">简答题</el-radio-button>
       </el-radio-group>
       <el-select v-model="filterCategory" placeholder="分类" clearable size="small" style="width: 140px">
-        <el-option label="售后流程" value="售后流程" />
-        <el-option label="产品知识" value="产品知识" />
-        <el-option label="故障处理" value="故障处理" />
-        <el-option label="服务规范" value="服务规范" />
+        <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
       </el-select>
+    </div>
+
+    <!-- Batch action bar -->
+    <div v-if="multipleSelection.length > 0" class="batch-bar">
+      <span class="batch-info">已选择 {{ multipleSelection.length }} 项</span>
+      <el-button type="danger" size="small" :icon="Delete" @click="handleBatchDelete">批量删除</el-button>
+      <el-button size="small" :icon="Download" @click="handleBatchExport">导出CSV</el-button>
+      <el-button size="small" @click="showCategoryDialog = true">改分类</el-button>
+      <el-button text size="small" @click="clearSelection">取消选择</el-button>
     </div>
 
     <!-- Table -->
     <el-card shadow="never" class="table-card">
-      <el-table :data="filteredQuestions" stripe style="width: 100%" >
+      <el-table :data="filteredQuestions" stripe style="width: 100%" ref="dataTable" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="40" />
         <el-table-column label="题目" min-width="320">
           <template #default="scope">
             <div class="question-cell">
@@ -82,10 +89,7 @@
         </el-form-item>
         <el-form-item label="分类">
           <el-select v-model="newQuestion.category" placeholder="选择分类" style="width: 100%">
-            <el-option label="售后流程" value="售后流程" />
-            <el-option label="产品知识" value="产品知识" />
-            <el-option label="故障处理" value="故障处理" />
-            <el-option label="服务规范" value="服务规范" />
+            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
           </el-select>
         </el-form-item>
         <el-form-item label="题目内容">
@@ -117,6 +121,21 @@
       </template>
     </el-dialog>
   </div>
+    <!-- Batch category dialog -->
+    <el-dialog v-model="showCategoryDialog" title="批量改分类" width="400px" :close-on-click-modal="false">
+      <el-form label-width="80px">
+        <el-form-item label="目标分类">
+          <el-select v-model="batchCategory" placeholder="选择分类" style="width: 100%">
+            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showCategoryDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleBatchUpdateCategory">确认</el-button>
+      </template>
+    </el-dialog>
+
 </template>
 
 <script setup>
@@ -132,12 +151,73 @@ const filterCategory = ref("");
 const currentPage = ref(1);
 const showDialog = ref(false);
 const questions = ref([]);
+const categories = ref([]);
 const editingId = ref(null);
+const multipleSelection = ref([]);
+const showCategoryDialog = ref(false);
+const batchCategory = ref("");
+
+function handleSelectionChange(val) {
+  multipleSelection.value = val;
+}
+
+function clearSelection() {
+  multipleSelection.value = [];
+}
+
+async function handleBatchDelete() {
+  if (multipleSelection.value.length === 0) return;
+  try {
+    await ElMessageBox.confirm("确定删除选中的 " + multipleSelection.value.length + " 道题？", "确认删除");
+    const ids = multipleSelection.value.map(q => q.id);
+    await api.questions.batchDelete(ids);
+    const qRes = await api.questions.list({size: 100});
+    questions.value = (qRes.items || []).map(q2 => ({ ...q2, difficulty: q2.difficulty || 1, options: q2.options || [] }));
+    multipleSelection.value = [];
+    ElMessage.success("删除成功");
+  } catch(e) {}
+}
+
+async function handleBatchExport() {
+  if (multipleSelection.value.length === 0) return;
+  try {
+    const ids = multipleSelection.value.map(q => q.id);
+    const resp = await api.questions.batchExport(ids);
+    const blob = await resp.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "选中题目.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    ElMessage.error("导出失败");
+  }
+}
+
+async function handleBatchUpdateCategory() {
+  if (multipleSelection.value.length === 0 || !batchCategory.value) return;
+  try {
+    const ids = multipleSelection.value.map(q => q.id);
+    await api.questions.batchCategory(ids, batchCategory.value);
+    const qRes = await api.questions.list({size: 100});
+    questions.value = (qRes.items || []).map(q2 => ({ ...q2, difficulty: q2.difficulty || 1, options: q2.options || [] }));
+    showCategoryDialog.value = false;
+    batchCategory.value = "";
+    multipleSelection.value = [];
+    ElMessage.success("分类更新成功");
+  } catch(e) {
+    ElMessage.error("操作失败");
+  }
+}
 
 onMounted(async () => {
   try {
-    const qRes = await api.questions.list({size: 100});
+    const [qRes, catRes] = await Promise.all([
+      api.questions.list({size: 100}),
+      api.categories.list()
+    ]);
     questions.value = (qRes.items || []).map(q => ({ ...q, difficulty: q.difficulty || 1, options: q.options || [], used: q.used_count || 0, lastUsed: "" }));
+    categories.value = (catRes.items || []);
   } catch(e) { console.error(e); }
 });
 
@@ -281,5 +361,20 @@ function editQuestion(row) {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--el-fill-color-light);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--el-border-color-light);
+}
+.batch-info {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  margin-right: 4px;
 }
 </style>
