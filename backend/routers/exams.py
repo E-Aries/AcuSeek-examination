@@ -134,11 +134,24 @@ def export_exam_papers(eid: int, db = Depends(get_db)):
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 @router.put("/{eid}")
-def update_exam(eid: int, data: ExamUpdate, db = Depends(get_db)):
+def update_exam(eid: int, data: dict, db = Depends(get_db)):
     exam = db.query(Exam).filter(Exam.id == eid).first()
     if not exam: raise HTTPException(status_code=404, detail="考试不存在")
-    for k, v in data.model_dump(exclude_unset=True).items():
-        setattr(exam, k, v)
+    # Handle questions_preview specially - save to ExamPaper
+    if "questions_preview" in data:
+        qs = data["questions_preview"]
+        paper = db.query(ExamPaper).filter(ExamPaper.exam_id == eid).first()
+        if paper:
+            paper.questions = qs
+        else:
+            paper = ExamPaper(exam_id=eid, user_id=1, questions=qs)
+            db.add(paper)
+        db.commit()
+        return {"message": "试卷已更新", "total": len(qs)}
+    # Normal exam fields
+    for k, v in data.items():
+        if hasattr(exam, k):
+            setattr(exam, k, v)
     db.commit()
     return {"message": "更新成功"}
 
@@ -150,3 +163,57 @@ def delete_exam(eid: int, db = Depends(get_db)):
     db.delete(exam)
     db.commit()
     return {"message": "删除成功"}
+
+@router.get("/{eid}/questions")
+def get_exam_questions(eid: int, db = Depends(get_db)):
+    exam = db.query(Exam).filter(Exam.id == eid).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="考试不存在")
+    papers = db.query(ExamPaper).filter(ExamPaper.exam_id == eid).first()
+    if not papers:
+        return {"items": []}
+    return {"items": papers.questions or []}
+
+@router.post("/{eid}/generate")
+def generate_exam_paper(eid: int, db = Depends(get_db)):
+    exam = db.query(Exam).filter(Exam.id == eid).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="考试不存在")
+    
+    if exam.strategy == "manual":
+        # Manual: return empty and clear existing paper
+        existing = db.query(ExamPaper).filter(ExamPaper.exam_id == eid).first()
+        if existing:
+            existing.questions = []
+        return {"items": [], "total": 0}
+    
+    q = db.query(Question)
+    cats = _ensure_list(exam.categories)
+    if cats:
+        q = q.filter(Question.category.in_(cats))
+    all_qs = q.all()
+    
+    selected = []
+    dist_data = _ensure_list(exam.distribution) if exam.distribution else None
+    if dist_data and isinstance(dist_data, dict):
+        for qtype, cfg in dist_data.items():
+            pool = [qq for qq in all_qs if qq.type == qtype]
+            random.shuffle(pool)
+            count = cfg.get("count", cfg) if isinstance(cfg, dict) else cfg
+            if isinstance(count, dict):
+                count = count.get("count", 0)
+            selected.extend(pool[:count])
+    else:
+        random.shuffle(all_qs)
+        selected = all_qs[:exam.question_count]
+    
+    snapshot = [{"id": q.id, "type": q.type, "content": q.content, "options": q.options, "score": q.score, "category": q.category, "difficulty": q.difficulty, "answer": q.answer} for q in selected]
+    
+    existing = db.query(ExamPaper).filter(ExamPaper.exam_id == eid).first()
+    if existing:
+        existing.questions = snapshot
+    else:
+        paper = ExamPaper(exam_id=eid, user_id=1, questions=snapshot)
+        db.add(paper)
+    db.commit()
+    return {"items": snapshot, "total": len(snapshot)}

@@ -40,7 +40,24 @@ def submit_answers(paper_id: int, data: AnswerSubmit, user = Depends(get_current
     paper.score = total
     paper.status = "待批改" if has_subjective else "已完成"
     db.commit()
-    return {"score": total, "status": paper.status, "message": "交卷成功"}
+    # Build per-question detail
+    detail = {}
+    for q in paper.questions:
+        qid = str(q["id"])
+        question = db.query(Question).filter(Question.id == q["id"]).first()
+        if not question: continue
+        user_ans = data.answers.get(qid, "")
+        correct = False
+        if question.type in ("单选", "判断"):
+            correct = user_ans == question.answer
+        elif question.type == "多选":
+            ua = set(user_ans) if isinstance(user_ans, list) else set()
+            ca = set(eval(question.answer)) if question.answer.startswith("[") else set([question.answer])
+            correct = ua == ca
+        elif question.type == "填空":
+            correct = (user_ans or "").strip() == question.answer.strip()
+        detail[qid] = {"correct": correct, "userAnswer": user_ans, "correctAnswer": question.answer, "score": question.score if correct else 0}
+    return {"score": total, "status": paper.status, "message": "交卷成功", "detail": detail}
 from pydantic import BaseModel
 
 class GradeRequest(BaseModel):

@@ -20,6 +20,7 @@
           <el-icon><Timer /></el-icon>
           <span>{{ formattedTime }}</span>
         </div>
+        <div class="exam-name-tag">{{ examName }}</div>
         <el-button type="primary" size="small" @click="handleSubmit">交卷</el-button>
       </div>
     </header>
@@ -43,7 +44,7 @@
                 v-for="(opt, i) in currentQuestion.options"
                 :key="i"
                 class="q-option"
-                :class="{ selected: answers[currentIndex] === opt.label }"
+                :class="{ selected: answers[currentIndex] === opt.label, correct: submitted && isOptionCorrect(opt.label), wrong: submitted && isOptionWrong(opt.label) }"
                 @click="selectOption(opt.label)"
               >
                 <div class="q-option-marker">
@@ -61,7 +62,7 @@
                 v-for="(opt, i) in currentQuestion.options"
                 :key="i"
                 class="q-option"
-                :class="{ selected: multiSelected.includes(opt.label) }"
+                :class="{ selected: multiSelected.includes(opt.label), correct: submitted && isOptionCorrect(opt.label), wrong: submitted && isOptionWrong(opt.label) }"
                 @click="toggleMulti(opt.label)"
               >
                 <div class="q-option-marker multi">
@@ -145,6 +146,38 @@
         <el-button type="primary" @click="confirmSubmit">确认交卷</el-button>
       </template>
     </el-dialog>
+
+    <!-- Score result dialog -->
+    <el-dialog v-model="showResult" title="交卷成功" width="480px" :close-on-click-modal="false" :show-close="false">
+      <div class="result-display">
+        <div class="result-hero" :class="{ passed: resultData.passed }">
+          <div class="result-score">{{ resultData.score }}</div>
+          <div class="result-label">得分</div>
+        </div>
+        <div class="result-stats">
+          <div class="result-stat-item">
+            <span class="rs-value">{{ resultData.totalQuestions }}</span>
+            <span class="rs-label">总题数</span>
+          </div>
+          <div class="result-stat-item">
+            <span class="rs-value">{{ resultData.correctCount }}</span>
+            <span class="rs-label">答对</span>
+          </div>
+          <div class="result-stat-item">
+            <span class="rs-value">{{ resultData.maxScore }}</span>
+            <span class="rs-label">满分</span>
+          </div>
+          <div class="result-stat-item">
+            <span class="rs-value">{{ resultData.status }}</span>
+            <span class="rs-label">状态</span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="router.push('/results')" type="primary">查看成绩</el-button>
+        <el-button @click="router.push('/exams')">返回考试列表</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -168,16 +201,25 @@ const questions = ref([]);
 const examName = ref("加载中...");
 const paperId = ref(null);
 const remaining = ref(0);
+const totalSeconds = ref(3600);
+const showResult = ref(false);
+const resultData = ref({ score: 0, maxScore: 0, correctCount: 0, totalQuestions: 0, status: "", passed: false });
+const submitted = ref(false);
+const questionDetail = ref({});
 let timer = null;
 
 onMounted(async () => {
   try {
-    const res = await api.exams.start(route.params.id);
+    const [res, examRes] = await Promise.all([
+      api.exams.start(route.params.id),
+      api.exams.get(route.params.id)
+    ]);
     paperId.value = res.paper_id;
-    questions.value = (res.questions || []).slice(0, 10); // limit for demo
-    remaining.value = 3600;
-    examName.value = "考试进行中";
-    timer = setInterval(() => { if (remaining.value > 0) remaining.value--; else confirmSubmit(); }, 1000);
+    questions.value = (res.questions || []).slice(0, 10);
+    examName.value = examRes.name || "考试进行中";
+    remaining.value = (examRes.duration || 60) * 60;
+    totalSeconds.value = remaining.value;
+    timer = setInterval(() => { if (remaining.value > 0) remaining.value--; else { clearInterval(timer); confirmSubmit(); } }, 1000);
   } catch(e) { ElMessage.error("加载失败"); }
 });
 
@@ -231,10 +273,58 @@ function handleSubmit() { showSubmitConfirm.value = true; }
 async function confirmSubmit() {
   clearInterval(timer);
   try {
-    const res = await api.answers.submit(paperId.value, { questions: questions.value, answers: Object.fromEntries(Object.entries(answers.value).map(([k, v]) => [String(questions.value[k]?.id), v])), duration_used: 3600 - remaining.value });
-    ElMessage.success("交卷成功！得分：" + (res.score || 0));
-    router.push("/results");
+    const res = await api.answers.submit(paperId.value, { questions: questions.value, answers: Object.fromEntries(Object.entries(answers.value).map(([k, v]) => [String(questions.value[k]?.id), v])), duration_used: totalSeconds.value - remaining.value });
+    showSubmitConfirm.value = false;
+    // Calculate detailed results
+    const qs = questions.value;
+    let correctCount = 0;
+    let maxScore = 0;
+    qs.forEach((q, i) => {
+      const qid = String(q.id);
+      const userAns = answers.value[i];
+      maxScore += q.score || 2;
+      const correct = res.detail?.[qid]?.correct;
+      if (correct) correctCount++;
+    });
+    resultData.value = {
+      score: res.score || 0,
+      maxScore: maxScore,
+      correctCount: correctCount,
+      totalQuestions: qs.length,
+      status: res.status === "已完成" ? "已完成" : "待批改",
+      passed: (res.score || 0) >= (maxScore * 0.6)
+    };
+    submitted.value = true;
+    questionDetail.value = res.detail || {};
+    showResult.value = true;
   } catch(e) { ElMessage.error("交卷失败"); }
+}
+
+function isOptionCorrect(label) {
+  const q = currentQuestion.value;
+  if (!submitted.value || !q.id) return false;
+  const detail = questionDetail.value[String(q.id)];
+  if (!detail) return false;
+  if (q.type === "多选") {
+    const ca = Array.isArray(detail.correctAnswer) ? detail.correctAnswer :
+      detail.correctAnswer ? (detail.correctAnswer.startsWith("[") ? JSON.parse(detail.correctAnswer) : [detail.correctAnswer]) : [];
+    return ca.includes(label);
+  }
+  return detail.correctAnswer === label;
+}
+function isOptionWrong(label) {
+  const q = currentQuestion.value;
+  if (!submitted.value || !q.id) return false;
+  const detail = questionDetail.value[String(q.id)];
+  if (!detail) return false;
+  if (!detail.correct) {
+    if (q.type === "多选") {
+      const userAns = Array.isArray(detail.userAnswer) ? detail.userAnswer : [];
+      return userAns.includes(label);
+    }
+    return detail.userAnswer === label;
+  }
+  return false;
 }
 
 function handleQuit() { router.push("/exams"); }
@@ -295,6 +385,14 @@ function handleQuit() { router.push("/exams"); }
   white-space: nowrap;
 }
 .progress-bar { flex: 1; }
+.exam-name-tag {
+  font-size: 13px;
+  color: var(--c-text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .exam-topbar-right {
   display: flex;
   align-items: center;
@@ -376,7 +474,26 @@ function handleQuit() { router.push("/exams"); }
   cursor: pointer;
   transition: all var(--transition-fast);
 }
+.q-option.correct {
+  border-color: var(--c-success);
+  background: var(--c-success-bg);
+}
+.q-option.correct .q-option-marker {
+  border-color: var(--c-success);
+  background: var(--c-success);
+  color: white;
+}
+.q-option.wrong {
+  border-color: var(--c-danger);
+  background: var(--c-danger-bg);
+}
+.q-option.wrong .q-option-marker {
+  border-color: var(--c-danger);
+  background: var(--c-danger);
+  color: white;
+}
 .q-option:hover {
+
   border-color: var(--c-primary-light);
   background: var(--c-primary-lighter);
 }
@@ -524,6 +641,63 @@ function handleQuit() { router.push("/exams"); }
 .slide-q-leave-to {
   opacity: 0;
   transform: translateX(-20px);
+}
+
+/* Score result dialog */
+.result-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 0;
+}
+.result-hero {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--c-success), #34D399);
+  color: white;
+}
+.result-hero.passed {
+  background: linear-gradient(135deg, var(--c-success), #34D399);
+}
+.result-hero:not(.passed) {
+  background: linear-gradient(135deg, var(--c-danger), #F87171);
+}
+.result-score {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+.result-label {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+.result-stats {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  justify-content: center;
+}
+.result-stat-item {
+  text-align: center;
+}
+.result-stat-item .rs-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+.result-stat-item .rs-label {
+  font-size: 12px;
+  color: var(--c-text-tertiary);
 }
 
 @media (max-width: 768px) {

@@ -29,7 +29,7 @@
         <span class="detail-stat-label">考试时长（分钟）</span>
       </div>
       <div class="detail-stat-item">
-        <span class="detail-stat-value">{{ exam.question_count }}</span>
+        <span class="detail-stat-value">{{ paperQuestions.length || exam.question_count }}</span>
         <span class="detail-stat-label">题目数量</span>
       </div>
       <div class="detail-stat-item">
@@ -49,6 +49,38 @@
     <!-- Tabs: Candidates, Scores, Config -->
     <el-card shadow="never" class="detail-card">
       <el-tabs v-model="activeTab">
+        <el-tab-pane name="paper">
+          <template #label>
+            <span>组卷管理 <span style="font-size:12px;color:var(--c-text-tertiary);margin-left:4px">({{ paperQuestions.length }}题 / {{ paperTotalScore }}分)</span></span>
+          </template>
+          <div class="toolbar-inline">
+
+            <div style="display:flex;gap:8px">
+              <el-button size="small" :icon="Refresh" @click="generatePaper" :loading="generating">
+                生成试卷
+              </el-button>
+
+            </div>
+          </div>
+          <el-table :data="paperQuestions" stripe style="width:100%" class="detail-table" v-loading="generating">
+            <el-table-column type="index" label="#" width="40" align="right" />
+            <el-table-column label="题目" min-width="300">
+              <template #default="{ row }">
+                <div class="question-cell">
+                  <el-tag :type="typeTag(row.type)" size="small" effect="plain" class="q-type">{{ row.type }}</el-tag>
+                  <span class="q-text">{{ row.content }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="分类" width="90" prop="category" />
+            <el-table-column label="难度" width="80" align="center">
+              <template #default="{ row }">
+                <el-rate v-model="row.difficulty" :max="3" disabled :colors="['var(--c-success)','var(--c-warning)','var(--c-danger)']" size="small" />
+              </template>
+            </el-table-column>
+            <el-table-column label="分值" width="60" align="right" prop="score" />
+          </el-table>
+        </el-tab-pane>
         <el-tab-pane label="考生成绩" name="scores">
           <div class="toolbar-inline">
             <el-input v-model="candidateSearch" placeholder="搜索考生姓名..." clearable :prefix-icon="Search" class="search-sm" />
@@ -184,6 +216,7 @@
         <el-button type="primary" @click="saveEdit">保存</el-button>
       </template>
     </el-dialog>
+
   </div>
 </template>
 
@@ -201,7 +234,20 @@ const candidateSearch = ref("");
 const loading = ref(false);
 const showGradeDialog = ref(false);
 const showEditDialog = ref(false)
-const editForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [] })
+const paperQuestions = ref([])
+const generating = ref(false)
+const paperTotalScore = computed(() => paperQuestions.value.reduce((s, q) => s + (q.score || 2), 0))
+const showAddQuestions = ref(false)
+const questionSearch = ref("")
+const availableQuestions = ref([])
+const addBtnDisabled = computed(() => {
+  try { return addTableRef.value ? (addTableRef.value.getSelectionRows() || []).length === 0 : true; } catch(e) { return true; }
+});
+const selectedAddCount = computed(() => {
+  try { return addTableRef.value ? (addTableRef.value.getSelectionRows() || []).length : 0; } catch(e) { return 0; }
+});
+const editForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [] });
+
 const gradingPaper = ref({});
 const gradeScore = ref(0);
 
@@ -223,6 +269,28 @@ const filteredCandidates = computed(() => {
   return allCandidates.value.filter(c => c.name.includes(candidateSearch.value));
 });
 
+function typeTag(type) { return { "单选": "", "多选": "success", "判断": "warning", "填空": "info", "简答": "danger" }[type] || ""; }
+
+async function generatePaper() {
+  generating.value = true;
+  try {
+    const res = await api.exams.generate(route.params.id);
+    paperQuestions.value = res.items || [];
+    ElMessage.success("试卷已生成");
+  } catch(e) {
+    ElMessage.error("生成失败");
+  } finally {
+    generating.value = false;
+  }
+}
+
+async function loadPaper() {
+  try {
+    const res = await api.exams.questions(route.params.id);
+    paperQuestions.value = res.items || [];
+  } catch(e) {}
+}
+
 onMounted(async () => {
   loading.value = true;
   try {
@@ -239,6 +307,7 @@ onMounted(async () => {
       duration_used: p.duration_used, submitted_at: p.submitted_at
     }));
   } catch(e) { ElMessage.error("加载考试数据失败"); }
+  loadPaper();
   loading.value = false;
 });
 

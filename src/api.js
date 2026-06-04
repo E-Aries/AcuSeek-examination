@@ -53,6 +53,8 @@ export const api = {
     updateStatus: (id, status) => request(`/exams/${id}/status?status=${status}`, { method: "PUT" }),
     update: (id, data) => request(`/exams/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     delete: (id) => request(`/exams/${id}`, { method: "DELETE" }),
+    generate: (id) => request(`/exams/${id}/generate`, { method: "POST" }),
+    questions: (id) => request(`/exams/${id}/questions`),
   },
   answers: {
     submit: (paperId, data) => request(`/answers/submit/${paperId}`, { method: "POST", body: JSON.stringify(data) }),

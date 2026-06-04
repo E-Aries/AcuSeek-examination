@@ -34,7 +34,7 @@
             </svg>
             <div class="ring-large-text">
               <span class="ring-large-score">{{ result.score }}</span>
-              <span class="ring-large-unit">分</span>
+              <span class="ring-large-unit">/ {{ result.maxScore }}</span>
             </div>
           </div>
         </div>
@@ -118,7 +118,7 @@
               <span class="review-number">第 {{ i + 1 }} 题</span>
               <span class="review-type">{{ q.type }}</span>
             </div>
-            <span class="review-score">+{{ q.score }}</span>
+            <span class="review-score">{{ q.correct === true ? q.score : 0 }}/{{ q.score }}</span>
           </div>
         </div>
       </div>

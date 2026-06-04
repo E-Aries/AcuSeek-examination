@@ -42,7 +42,7 @@
         <el-table-column type="selection" width="40" />
         <el-table-column label="题目" min-width="320">
           <template #default="scope">
-            <div class="question-cell">
+            <div class="question-cell" style="cursor:pointer" @click="previewQuestion(scope.row)">
               <el-tag :type="typeTag(scope.row.type)" size="small" effect="plain" class="q-type">{{ scope.row.type }}</el-tag>
               <span class="q-text">{{ scope.row.content }}</span>
             </div>
@@ -136,6 +136,35 @@
       </template>
     </el-dialog>
 
+    <!-- Question preview dialog -->
+    <el-dialog v-model="showPreview" title="题目详情" width="600px" :close-on-click-modal="false">
+      <div v-if="previewData" class="preview-body">
+        <div class="preview-header">
+          <el-tag :type="typeTag(previewData.type)" size="small" effect="plain">{{ previewData.type }}</el-tag>
+          <span class="preview-category">{{ previewData.category }}</span>
+          <span class="preview-difficulty">
+            <el-rate v-model="previewData.difficulty" :max="3" disabled :colors="['var(--c-success)','var(--c-warning)','var(--c-danger)']" size="small" />
+          </span>
+          <span class="preview-score">{{ previewData.score }} 分</span>
+        </div>
+        <div class="preview-content">{{ previewData.content }}</div>
+        <div v-if="previewData.options && previewData.options.length" class="preview-options">
+          <div v-for="(opt, i) in previewData.options" :key="i" class="preview-option">
+            <span class="preview-opt-label">{{ opt.label }}.</span>
+            <span class="preview-opt-text">{{ opt.text }}</span>
+            <el-tag v-if="isCorrectAnswer(opt.label)" type="success" size="small" effect="dark" class="preview-correct-badge">正确答案</el-tag>
+          </div>
+        </div>
+        <div v-if="previewData.answer" class="preview-answer">
+          <span class="preview-answer-label">答案：</span>
+          <span class="preview-answer-text">{{ previewAnswer }}</span>
+        </div>
+        <div v-if="previewData.explanation" class="preview-explanation">
+          <span class="preview-explanation-label">解析：</span>
+          <p class="preview-explanation-text">{{ previewData.explanation }}</p>
+        </div>
+      </div>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -156,6 +185,37 @@ const editingId = ref(null);
 const multipleSelection = ref([]);
 const showCategoryDialog = ref(false);
 const batchCategory = ref("");
+const showPreview = ref(false);
+const previewData = ref(null);
+
+function previewQuestion(row) {
+  previewData.value = { ...row };
+  showPreview.value = true;
+}
+
+const previewAnswer = computed(() => {
+  if (!previewData.value) return "";
+  const d = previewData.value;
+  if (d.type === "多选") {
+    try {
+      const arr = JSON.parse(d.answer);
+      return Array.isArray(arr) ? arr.join(", ") : d.answer;
+    } catch(e) { return d.answer; }
+  }
+  return d.answer || "";
+});
+
+function isCorrectAnswer(label) {
+  if (!previewData.value) return false;
+  const d = previewData.value;
+  if (d.type === "多选") {
+    try {
+      const arr = JSON.parse(d.answer);
+      return Array.isArray(arr) && arr.includes(label);
+    } catch(e) { return false; }
+  }
+  return d.answer === label;
+}
 
 function handleSelectionChange(val) {
   multipleSelection.value = val;
@@ -377,4 +437,94 @@ function editQuestion(row) {
   color: var(--el-text-color-secondary);
   margin-right: 4px;
 }
+
+.preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.preview-category {
+  font-size: 13px;
+  color: var(--c-text-secondary);
+}
+.preview-difficulty {
+  display: inline-flex;
+  align-items: center;
+}
+.preview-score {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  margin-left: auto;
+}
+.preview-content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--c-text);
+  padding: 12px 0;
+  border-top: 1px solid var(--c-border-light);
+}
+.preview-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.preview-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-sm);
+}
+.preview-opt-label {
+  font-weight: 600;
+  color: var(--c-text);
+  min-width: 20px;
+}
+.preview-opt-text {
+  color: var(--c-text-secondary);
+}
+.preview-correct-badge {
+  margin-left: auto;
+}
+.preview-answer {
+  padding: 10px 12px;
+  background: var(--c-success-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-success);
+}
+.preview-answer-label {
+  font-weight: 600;
+  color: var(--c-success);
+  font-size: 13px;
+}
+.preview-answer-text {
+  color: var(--c-text);
+  margin-left: 8px;
+}
+.preview-explanation {
+  padding: 10px 12px;
+  background: var(--c-warning-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-warning);
+}
+.preview-explanation-label {
+  font-weight: 600;
+  color: var(--c-warning);
+  font-size: 13px;
+}
+.preview-explanation-text {
+  color: var(--c-text-secondary);
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 </style>

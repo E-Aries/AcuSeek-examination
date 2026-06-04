@@ -92,10 +92,7 @@
         </el-form-item>
         <el-form-item label="关联分类">
           <el-select v-model="createForm.categories" multiple placeholder="选择题目分类" style="width:100%">
-            <el-option label="售后流程" value="售后流程" />
-            <el-option label="产品知识" value="产品知识" />
-            <el-option label="故障处理" value="故障处理" />
-            <el-option label="服务规范" value="服务规范" />
+            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
           </el-select>
         </el-form-item>
         <el-form-item label="及格分数线">
@@ -122,17 +119,30 @@ const search = ref("");
 const filterStatus = ref("");
 const showCreate = ref(false);
 const questionTypes = ref([]);
+const categories = ref([]);
 const exams = ref([]);
 
 onMounted(async () => {
   try {
-    const [examRes, byExamRes] = await Promise.all([
+    const [examRes, byExamRes, qStats, catRes] = await Promise.all([
       api.exams.list(),
-      api.results.byExam()
+      api.results.byExam(),
+      api.questions.stats(),
+      api.categories.list()
     ]);
     const examStats = {};
     (byExamRes.items || []).forEach(r => { examStats[r.exam_id] = r.candidates; });
-    exams.value = (examRes.items || []).map(e => ({ ...e, questionCount: e.question_count, candidates: examStats[e.id] || 0, date: e.status === "未开始" ? "待定" : e.status }));
+    const examIds = (examRes.items || []).map(e => e.id);
+    const paperCounts = {};
+    await Promise.all(examIds.map(async (id) => {
+      try {
+        const pr = await api.exams.questions(id);
+        paperCounts[id] = (pr.items || []).length;
+      } catch(e) { paperCounts[id] = 0; }
+    }));
+    exams.value = (examRes.items || []).map(e => ({ ...e, questionCount: paperCounts[e.id] || e.question_count, candidates: examStats[e.id] || 0, date: e.status === "未开始" ? "待定" : e.status }));
+    questionTypes.value = (qStats.items || []).map(s => s.type);
+    categories.value = (catRes.items || []);
   } catch(e) { console.error(e); }
 });
 
