@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="login-page">
     <!-- Decorative Background -->
     <div class="login-bg">
@@ -52,6 +52,7 @@
       <!-- Right: Login form -->
       <div class="login-form-panel">
         <div class="form-container">
+        <template v-if="!showRegister">
           <div class="form-header">
             <h2 class="form-title">欢迎回来</h2>
             <p class="form-subtitle">请登录您的账号</p>
@@ -100,8 +101,34 @@
               登 录
             </el-button>
           </el-form>
+          <div style="text-align:center;margin-top:16px">
+            <el-button text type="primary" size="small" @click="showRegister = !showRegister">{{ showRegister ? "返回登录" : "没有账号？注册" }}</el-button>
+          </div>
+        </template>
 
-          <div class="login-footer-content">
+        <template v-else>
+          <div class="form-header">
+            <h2 class="form-title">注册账号</h2>
+            <p class="form-subtitle">创建一个新的考生账号</p>
+          </div>
+          <el-form ref="registerRef" :model="registerForm" class="login-form" @submit.prevent="handleRegister">
+            <el-form-item prop="username" :rules="[{ required: true, message: '请输入用户名' }]">
+              <el-input v-model="registerForm.username" placeholder="用户名" :prefix-icon="User" size="large" />
+            </el-form-item>
+            <el-form-item prop="name">
+              <el-input v-model="registerForm.name" placeholder="姓名（可选）" :prefix-icon="Edit" size="large" />
+            </el-form-item>
+            <el-form-item prop="password" :rules="[{ required: true, message: '\u8bf7\u8f93\u5165密码' }]">
+              <el-input v-model="registerForm.password" type="password" placeholder="密码" :prefix-icon="Lock" size="large" show-password />
+            </el-form-item>
+            <el-button class="login-submit-btn" type="primary" size="large" native-type="submit" :loading="registerLoading" style="width:100%">注 册</el-button>
+          </el-form>
+          <div style="text-align:center;margin-top:16px">
+            <el-button text type="primary" size="small" @click="showRegister = false">已有账号？登录</el-button>
+          </div>
+        </template>
+
+        <div class="login-footer-content">
             <p class="login-footer-text">首次使用请联系管理员获取账号</p>
             <p class="login-company-name">© 天津硕讯科技有限公司</p>
           </div>
@@ -114,14 +141,19 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { User, Lock, Select, Coin, DataBoard } from "@element-plus/icons-vue";
+import { User, Lock, Edit, Select, Coin, DataBoard } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
 const formRef = ref(null);
+const registerRef = ref(null);
+const showRegister = ref(false);
+const registerLoading = ref(false);
 const loading = ref(false);
 const remember = ref(false);
+
+const registerForm = reactive({ username: "", name: "", password: "" });
 
 const form = reactive({
   username: "",
@@ -139,6 +171,31 @@ const rules = {
   ],
 };
 
+
+async function handleRegister() {
+  registerRef.value.validate(async (valid) => {
+    if (!valid) return;
+    registerLoading.value = true;
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registerForm)
+      });
+      const data = await res.json();
+      if (data.id) {
+        ElMessage.success("注册成功，请登录");
+        showRegister.value = false;
+        registerForm.username = "";
+        registerForm.name = "";
+        registerForm.password = "";
+      } else {
+        ElMessage.error(data.detail || "注册失败");
+      }
+    } catch(e) { ElMessage.error("注册失败"); }
+    registerLoading.value = false;
+  });
+}
 async function handleLogin() {
   formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -148,7 +205,8 @@ async function handleLogin() {
       localStorage.setItem("token", res.access_token);
       localStorage.setItem("user", JSON.stringify(res.user));
       loading.value = false;
-      router.push({ name: "Dashboard" });
+      const target = res.user?.role === "admin" ? "Dashboard" : "Exams";
+          router.push({ name: target });
     } catch (e) {
       loading.value = false;
       ElMessage.error("用户名或密码错误");

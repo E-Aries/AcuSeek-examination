@@ -84,3 +84,12 @@ def import_questions(file: UploadFile = File(...), db = Depends(get_db)):
 def get_categories(db = Depends(get_db)):
     cats = db.query(Question.category).distinct().all()
     return {"items": [c[0] for c in cats if c[0]]}
+
+@router.post("/batch-delete")
+def batch_delete_questions(data: dict, db = Depends(get_db)):
+    ids = data.get("ids", [])
+    if not ids:
+        raise HTTPException(status_code=400, detail="请选择要删除的题目")
+    deleted = db.query(Question).filter(Question.id.in_(ids)).delete(synchronize_session=False)
+    db.commit()
+    return {"deleted": deleted, "message": f"成功删除 {deleted} 道题目"}

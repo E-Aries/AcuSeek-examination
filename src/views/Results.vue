@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="results-page">
     <!-- Header with stats -->
     <div class="results-header">
@@ -8,7 +8,7 @@
       </div>
       <div class="results-header-actions">
         <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" size="small" />
-        <el-button :icon="Download" size="small">导出报告</el-button>
+        <el-button :icon="Download" size="small" @click="exportResults">导出报告</el-button>
       </div>
     </div>
 
@@ -70,7 +70,7 @@
         v-for="(exam, i) in examResults"
         :key="exam.id"
         class="result-card"
-        @click="$router.push(`/results/${exam.id}`)"
+        @click="router.push('/exams/' + exam.id)"
       >
         <!-- Left decorative stripe -->
         <div class="result-stripe" :style="{ background: exam.color }"></div>
@@ -120,7 +120,7 @@
           </div>
 
           <div class="result-footer">
-            <span class="result-date">{{ exam.date }}</span>
+            <span class="result-date">通过率 {{ exam.passRate }}%</span>
             <div class="result-actions">
               <el-button text type="primary" size="small">查看详情</el-button>
               <el-button text size="small" :icon="Download" @click.stop />
@@ -134,30 +134,44 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { DataBoard, CircleCheck, UserFilled, WarningFilled, Download, Top, Bottom } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 
+const router = useRouter();
 const dateRange = ref(null);
 const examResults = ref([]);
 const overview = ref({ exams_count: 0, total_candidates: 0, pass_rate: 0, pending: 0 });
 
 onMounted(async () => {
   try {
-    const [res, statsRes] = await Promise.all([
-      api.results.list(),
+    const [byExamRes, statsRes] = await Promise.all([
+      api.results.byExam(),
       api.results.stats()
     ]);
     overview.value = statsRes;
-    examResults.value = (res.items || []).map(r => ({
-      id: r.paper_id, name: r.exam_name, type: r.exam_type || "正式",
-      candidates: r.candidate || "-", passed: (r.score || 0) >= 60 ? 1 : 0,
-      avgScore: r.score || 0, topScore: r.score || 0,
-      passRate: (r.score || 0) >= 60 ? 85 : 40,
-      date: r.submitted_at || "",
-      color: (r.score || 0) >= 60 ? "linear-gradient(180deg, #10B981, #059669)" : "linear-gradient(180deg, #EF4444, #DC2626)"
+    examResults.value = (byExamRes.items || []).map(r => ({
+      id: r.exam_id, name: r.exam_name, type: r.exam_type || "正式",
+      candidates: r.candidates, passed: r.passed,
+      avgScore: r.avg_score, topScore: r.top_score,
+      passRate: r.pass_rate,
+      color: r.pass_rate >= 80 ? "linear-gradient(180deg, #10B981, #059669)" : r.pass_rate >= 60 ? "linear-gradient(180deg, #F59E0B, #D97706)" : "linear-gradient(180deg, #EF4444, #DC2626)"
     }));
   } catch(e) { console.error(e); }
 });
+function exportResults() {
+  const token = localStorage.getItem('token')
+  const a = document.createElement('a')
+  fetch('/api/results/export', { headers: { Authorization: 'Bearer ' + token } })
+    .then(r => r.blob())
+    .then(blob => {
+      a.href = URL.createObjectURL(blob)
+      a.download = '考核成绩.csv'
+      a.click()
+      URL.revokeObjectURL(a.href)
+    })
+    .catch(() => ElMessage.error('导出失败'))
+}
 </script>
 
 <style scoped>

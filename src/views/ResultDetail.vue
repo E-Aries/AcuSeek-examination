@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="result-detail">
     <!-- Back navigation -->
     <div class="detail-nav">
@@ -138,47 +138,152 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, CircleCheck, CloseBold, User, Clock, Calendar } from "@element-plus/icons-vue";
+import { useRoute } from "vue-router";
+import { ArrowLeft, CircleCheck, CloseBold, WarningFilled, User, Clock, Calendar } from "@element-plus/icons-vue";
 import VChart from "vue-echarts";
 import "echarts";
 import { api } from "../api.js";
 
 const route = useRoute();
-const router = useRouter();
-const result = ref({ examName: "加载中...", candidate: "", score: 0, passed: false, duration: "", date: "" });
+
+const result = ref({ examName: "加载中...", candidate: "", score: 0, maxScore: 100, passed: false, duration: "", date: "", rank: "-", avgScore: "-", highest: "-", percentile: 0 });
 const questions = ref([]);
 const categories = ref([]);
+const distributionData = ref([]);
+const totalPapers = ref(0);
+
+const CATEGORY_COLORS = ["var(--c-primary)", "var(--c-info)", "var(--c-warning)", "var(--c-primary-light)", "var(--c-success)", "var(--c-danger)"];
+
+function checkAnswer(paperQ, userAns, fullQ) {
+  if (!fullQ || userAns === undefined || userAns === null) return false;
+  const type = paperQ.type || fullQ.type;
+  const correctAns = (fullQ.answer || "").trim();
+  if (type === "简答") return null; // needs manual grading
+  if (type === "单选" || type === "判断") return String(userAns).trim() === correctAns;
+  if (type === "多选") {
+    const ua = new Set(Array.isArray(userAns) ? userAns.map(String) : [String(userAns)]);
+    let ca;
+    try { ca = new Set(correctAns.startsWith("[") ? JSON.parse(correctAns).map(String) : [correctAns]); }
+    catch(e) { ca = new Set([correctAns]); }
+    return ua.size === ca.size && [...ua].every(v => ca.has(v));
+  }
+  if (type === "填空") return String(userAns || "").trim() === correctAns;
+  return false;
+}
 
 onMounted(async () => {
   try {
     const res = await api.results.get(route.params.id);
+    if (res.error) { return; }
+    
     const s = res.score || 0;
+    const passScore = res.pass_score || 60;
+    const paperQs = res.questions || [];
+    const answers = res.answers || {};
+    const examId = res.exam_id;
+
+    // Fetch all questions (for categories + correct answers) and all papers (for stats)
+    const [qRes, papersRes] = await Promise.all([
+      api.questions.list({ size: 999 }),
+      examId ? api.exams.papers(examId) : Promise.resolve({ items: [] })
+    ]);
+    
+    const allQs = qRes.items || [];
+    const allPapers = papersRes.items || [];
+    
+    // Build question lookup map
+    const qMap = {};
+    allQs.forEach(q => { qMap[q.id] = q; });
+
+    // Compute max possible score from paper questions
+    let maxScore = 0;
+    paperQs.forEach(pq => { maxScore += pq.score || 2; });
+
+    // Build category breakdown
+    const catMap = {};
+    paperQs.forEach(pq => {
+      const fullQ = qMap[pq.id];
+      const cat = (fullQ && fullQ.category) || "未分类";
+      if (!catMap[cat]) catMap[cat] = { total: 0, score: 0 };
+      catMap[cat].total += pq.score || 2;
+    });
+    paperQs.forEach(pq => {
+      const qid = String(pq.id);
+      const fullQ = qMap[pq.id];
+      const cat = (fullQ && fullQ.category) || "未分类";
+      const userAns = answers[qid];
+      const correct = checkAnswer(pq, userAns, fullQ);
+      if (correct === true) catMap[cat].score += pq.score || 2;
+    });
+    
+    let colorIdx = 0;
+    categories.value = Object.entries(catMap).map(([name, data]) => ({
+      name, score: data.score, total: data.total,
+      percent: data.total > 0 ? Math.round(data.score / data.total * 100) : 0,
+      color: CATEGORY_COLORS[colorIdx++ % CATEGORY_COLORS.length]
+    }));
+
+    // Build question review
+    questions.value = paperQs.map(pq => {
+      const fullQ = qMap[pq.id];
+      const userAns = answers[String(pq.id)];
+      return {
+        type: pq.type || (fullQ && fullQ.type) || "未知",
+        correct: checkAnswer(pq, userAns, fullQ),
+        score: pq.score || 2
+      };
+    });
+
+    // Compute rank, avg, highest, percentile
+    const scores = allPapers.map(p => p.score).filter(s => s !== null && s !== undefined);
+    totalPapers.value = scores.length;
+    const sorted = [...scores].sort((a, b) => b - a);
+    const rankIdx = sorted.findIndex(sc => sc <= s);
+    const rank = rankIdx >= 0 ? rankIdx + 1 : "-";
+    const rankDisplay = rank !== "-" ? rank + "/" + scores.length : "-";
+    const avg = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : "-";
+    const highest = scores.length > 0 ? Math.max(...scores) : "-";
+    const percentile = scores.length > 1 ? Math.round((scores.length - rank) / (scores.length - 1) * 100) : 0;
+    
+    // Score distribution
+    const buckets = [0, 0, 0, 0, 0];
+    scores.forEach(sc => {
+      if (sc <= 20) buckets[0]++;
+      else if (sc <= 40) buckets[1]++;
+      else if (sc <= 60) buckets[2]++;
+      else if (sc <= 80) buckets[3]++;
+      else buckets[4]++;
+    });
+    distributionData.value = buckets;
+
     result.value = {
-      examName: res.exam_name || "考核", candidate: "考生",
-      score: s, passed: s >= 60, rank: "-",
-      avgScore: s, highest: s, percentile: 50,
+      examName: res.exam_name || "考核",
+      candidate: res.candidate || "考生",
+      score: s, maxScore: maxScore || 100,
+      passed: s >= passScore,
+      rank: rankDisplay, avgScore: avg, highest: highest, percentile: percentile,
       duration: Math.floor((res.duration_used || 0) / 60) + " 分钟",
-      date: res.submitted_at || ""
+      date: res.submitted_at ? res.submitted_at.slice(0, 16) : ""
     };
-    questions.value = (res.questions || []).map(q => ({ type: q.type, correct: true, score: q.score || 2 }));
-    categories.value = [
-      { name: "售后流程", score: Math.round(s * 0.35), total: 36, color: "var(--c-primary)" },
-      { name: "产品知识", score: Math.round(s * 0.2), total: 20, color: "var(--c-info)" },
-      { name: "故障处理", score: Math.round(s * 0.25), total: 20, color: "var(--c-warning)" },
-      { name: "服务规范", score: Math.round(s * 0.1), total: 12, color: "var(--c-success)" },
-      { name: "安全合规", score: Math.round(s * 0.1), total: 12, color: "var(--c-danger)" },
-    ];
   } catch(e) { console.error(e); }
 });
 
-const distributionOption = computed(() => ({
-  grid: { left: 50, right: 20, top: 10, bottom: 30 },
-  xAxis: { type: "category", data: ["0-20","21-40","41-60","61-80","81-100"], axisLabel: { color: "#9CA3AF", fontSize: 11 }, axisTick: { show: false }, axisLine: { show: false } },
-  yAxis: { type: "value", splitLine: { lineStyle: { color: "#F0EFEC", type: "dashed" } }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
-  series: [{ type: "bar", data: [{value:2,itemStyle:{color:"var(--c-danger)"}},{value:5,itemStyle:{color:"var(--c-warning)"}},{value:8,itemStyle:{color:"var(--c-accent)"}},{value:18,itemStyle:{color:"var(--c-primary-light)"}},{value:15,itemStyle:{color:"var(--c-success)"}}], barWidth: 36, borderRadius: [6,6,0,0], label: { show: true, position: "top", formatter: "{c}人", color: "#6B7280", fontSize: 12 } }],
-  tooltip: { trigger: "axis" },
-}));
+const distributionOption = computed(() => {
+  const labels = ["0-20", "21-40", "41-60", "61-80", "81-100"];
+  const barColors = ["var(--c-danger)", "var(--c-warning)", "var(--c-accent)", "var(--c-primary-light)", "var(--c-success)"];
+  return {
+    grid: { left: 50, right: 20, top: 10, bottom: 30 },
+    xAxis: { type: "category", data: labels, axisLabel: { color: "#9CA3AF", fontSize: 11 }, axisTick: { show: false }, axisLine: { show: false } },
+    yAxis: { type: "value", splitLine: { lineStyle: { color: "#F0EFEC", type: "dashed" } }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
+    series: [{
+      type: "bar",
+      data: distributionData.value.map((v, i) => ({ value: v, itemStyle: { color: barColors[i] } })),
+      barWidth: 36, borderRadius: [6,6,0,0],
+      label: { show: true, position: "top", formatter: "{c}人", color: "#6B7280", fontSize: 12 }
+    }],
+    tooltip: { trigger: "axis" },
+  };
+});
 </script>
 
 <style scoped>

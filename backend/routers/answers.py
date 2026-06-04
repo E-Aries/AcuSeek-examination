@@ -4,12 +4,13 @@ from datetime import datetime, timezone
 from database import get_db
 from models import ExamPaper, Question
 from schemas import AnswerSubmit
+from .auth import get_current_user
 
 router = APIRouter(prefix="/api/answers", tags=["answers"])
 
 @router.post("/submit/{paper_id}")
-def submit_answers(paper_id: int, data: AnswerSubmit, user_id: int = 1, db = Depends(get_db)):
-    paper = db.query(ExamPaper).filter(ExamPaper.id == paper_id, ExamPaper.user_id == user_id).first()
+def submit_answers(paper_id: int, data: AnswerSubmit, user = Depends(get_current_user), db = Depends(get_db)):
+    paper = db.query(ExamPaper).filter(ExamPaper.id == paper_id, ExamPaper.user_id == user.id).first()
     if not paper: raise HTTPException(status_code=404, detail="试卷不存在")
     if paper.status == "已完成": raise HTTPException(status_code=400, detail="已提交过")
 
@@ -40,3 +41,19 @@ def submit_answers(paper_id: int, data: AnswerSubmit, user_id: int = 1, db = Dep
     paper.status = "待批改" if has_subjective else "已完成"
     db.commit()
     return {"score": total, "status": paper.status, "message": "交卷成功"}
+from pydantic import BaseModel
+
+class GradeRequest(BaseModel):
+    score: float
+
+@router.put("/grade/{paper_id}")
+def grade_paper(paper_id: int, data: GradeRequest, db = Depends(get_db)):
+    paper = db.query(ExamPaper).filter(ExamPaper.id == paper_id).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="试卷不存在")
+    if paper.status != "待批改":
+        raise HTTPException(status_code=400, detail="只有待批改状态的试卷可以批改")
+    paper.score = data.score
+    paper.status = "已完成"
+    db.commit()
+    return {"message": "批改完成", "score": data.score, "status": "已完成"}

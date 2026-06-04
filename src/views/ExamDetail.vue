@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="exam-detail">
     <!-- Header -->
     <div class="detail-header">
@@ -13,9 +13,12 @@
         </div>
       </div>
       <div class="detail-header-right">
-        <el-button type="primary" :icon="Edit">编辑</el-button>
-        <el-button type="primary" :icon="CaretRight" @click="$router.push('/exams/' + route.params.id + '/take')" style="--el-button-bg-color:var(--c-success);--el-button-border-color:var(--c-success);--el-button-hover-bg-color:#059669;--el-button-hover-border-color:#059669">开始考试</el-button>
-        <el-button :icon="Share">分享</el-button>
+      <el-button :icon="Edit" @click="openEditDialog" text>编辑</el-button>
+      <el-button :icon="Delete" @click="confirmDelete" type="danger" text>删除</el-button>
+        <el-button v-if="exam.status === '未开始'" type="primary" :icon="CaretRight" @click="publishExam">发布考核</el-button>
+        <el-button v-if="exam.status === '进行中'" type="warning" :icon="Close" @click="closeExam">结束考核</el-button>
+        <el-button v-if="exam.status === '已结束'" type="primary" :icon="CaretRight" @click="publishExam">重新发布</el-button>
+        <el-button text :icon="Share" @click="copyShareLink">分享</el-button>
       </div>
     </div>
 
@@ -26,19 +29,19 @@
         <span class="detail-stat-label">考试时长（分钟）</span>
       </div>
       <div class="detail-stat-item">
-        <span class="detail-stat-value">{{ exam.questionCount }}</span>
+        <span class="detail-stat-value">{{ exam.question_count }}</span>
         <span class="detail-stat-label">题目数量</span>
       </div>
       <div class="detail-stat-item">
-        <span class="detail-stat-value">{{ exam.candidates }}</span>
+        <span class="detail-stat-value">{{ detail.total_candidates }}</span>
         <span class="detail-stat-label">参考人数</span>
       </div>
       <div class="detail-stat-item">
-        <span class="detail-stat-value">{{ passRate }}%</span>
+        <span class="detail-stat-value">{{ detail.pass_rate }}%</span>
         <span class="detail-stat-label">通过率</span>
       </div>
       <div class="detail-stat-item">
-        <span class="detail-stat-value">{{ avgScore }}</span>
+        <span class="detail-stat-value">{{ detail.avg_score }}</span>
         <span class="detail-stat-label">平均分</span>
       </div>
     </div>
@@ -49,26 +52,44 @@
         <el-tab-pane label="考生成绩" name="scores">
           <div class="toolbar-inline">
             <el-input v-model="candidateSearch" placeholder="搜索考生姓名..." clearable :prefix-icon="Search" class="search-sm" />
-            <el-button text type="primary" :icon="Download">导出</el-button>
+            <el-tag v-if="pendingCount > 0" type="warning" effect="plain">
+              待批改 {{ pendingCount }} 份
+            </el-tag>
+            <span v-else style="color:var(--c-text-tertiary);font-size:13px">共 {{ candidates.length }} 人</span>
+          <el-button :icon="Download" size="small" text type="primary" @click="exportCandidates">导出</el-button>
           </div>
-          <el-table :data="candidates" stripe style="width:100%" class="detail-table">
+          <el-table :data="filteredCandidates" stripe style="width:100%" class="detail-table" v-loading="loading">
             <el-table-column prop="name" label="姓名" width="120" />
             <el-table-column prop="department" label="部门" width="140" />
             <el-table-column label="成绩" width="90" align="right">
               <template #default="{ row }">
-                <span :style="{ color: row.score >= 60 ? 'var(--c-success)' : 'var(--c-danger)', fontWeight: 600 }">{{ row.score }}</span>
+                <span v-if="row.score !== null" :style="{ color: row.score >= (exam.pass_score || 60) ? 'var(--c-success)' : 'var(--c-danger)', fontWeight: 600 }">{{ row.score }}</span>
+                <span v-else style="color:var(--c-text-tertiary)">-</span>
               </template>
             </el-table-column>
             <el-table-column label="结果" width="80">
               <template #default="{ row }">
-                <el-tag :type="row.score >= 60 ? 'success' : 'danger'" size="small" effect="plain" round>{{ row.score >= 60 ? '通过' : '未通过' }}</el-tag>
+                <el-tag v-if="row.status === '已完成'" :type="row.score >= (exam.pass_score || 60) ? 'success' : 'danger'" size="small" effect="plain" round>{{ row.score >= (exam.pass_score || 60) ? '通过' : '未通过' }}</el-tag>
+                <el-tag v-else-if="row.status === '待批改'" type="warning" size="small" effect="plain" round>待批改</el-tag>
+                <el-tag v-else type="info" size="small" effect="plain" round>进行中</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="duration" label="用时" width="80" align="right" />
-            <el-table-column prop="date" label="提交时间" width="160" />
-            <el-table-column label="操作" width="80" fixed="right">
+            <el-table-column label="用时" width="80" align="right">
               <template #default="{ row }">
-                <el-button text type="primary" size="small" @click="$router.push(`/results/${row.id}`)">批阅</el-button>
+                <span v-if="row.duration_used">{{ Math.floor(row.duration_used / 60) }}分</span>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="提交时间" width="160">
+              <template #default="{ row }">
+                <span v-if="row.submitted_at">{{ row.submitted_at.slice(0, 16) }}</span>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100" fixed="right">
+              <template #default="{ row }">
+                <el-button v-if="row.status === '待批改'" text type="warning" size="small" @click="openGradeDialog(row)">批改</el-button>
+                <el-button v-else-if="row.status === '已完成'" text type="primary" size="small" @click="$router.push('/results/' + row.paper_id)">详情</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -78,63 +99,240 @@
             <div class="config-grid">
               <div class="config-item">
                 <span class="config-label">组卷策略</span>
-                <span class="config-value">随机组卷（按题型分布）</span>
+                <span class="config-value">{{ exam.strategy === 'random' ? '随机组卷' : '手动组卷' }}</span>
               </div>
               <div class="config-item">
                 <span class="config-label">及格线</span>
-                <span class="config-value">60 分</span>
+                <span class="config-value">{{ exam.pass_score || 60 }} 分</span>
               </div>
               <div class="config-item">
                 <span class="config-label">题目分类</span>
-                <span class="config-value">售后流程、产品知识、故障处理</span>
+                <span class="config-value">{{ examCategories }}</span>
               </div>
               <div class="config-item">
-                <span class="config-label">允许查看成绩</span>
-                <span class="config-value">提交后立即查看</span>
+                <span class="config-label">考试状态</span>
+                <span class="config-value">
+                  <el-tag :type="exam.status === '进行中' ? 'danger' : exam.status === '未开始' ? 'info' : ''" size="small" effect="dark" round>{{ exam.status }}</el-tag>
+                </span>
               </div>
             </div>
           </div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
+
+    <!-- Grade Dialog -->
+    <el-dialog v-model="showGradeDialog" title="批改试卷" width="420px">
+      <div class="grade-form">
+        <p style="margin-bottom:16px;color:var(--c-text-secondary);font-size:14px">
+          考生：<strong>{{ gradingPaper.name }}</strong>
+        </p>
+        <el-form label-position="top">
+          <el-form-item label="主观题得分">
+            <el-input-number v-model="gradeScore" :min="0" :max="100" :step="1" style="width:160px" />
+            <span style="margin-left:8px;color:var(--c-text-tertiary);font-size:13px">分</span>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <el-button @click="showGradeDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmGrade">确认批改</el-button>
+      </template>
+    </el-dialog>
+    <!-- Edit Dialog -->
+    <el-dialog v-model="showEditDialog" title="编辑考核" width="600px" :close-on-click-modal="false">
+      <el-form label-position="top">
+        <el-form-item label="考核名称">
+          <el-input v-model="editForm.name" placeholder="请输入考核名称" />
+        </el-form-item>
+        <el-form-item label="考核类型">
+          <el-radio-group v-model="editForm.type">
+            <el-radio value="正式">正式考核</el-radio>
+            <el-radio value="练习">练习模式</el-radio>
+            <el-radio value="模拟">模拟考试</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <el-form-item label="考试时长（分钟）">
+            <el-input-number v-model="editForm.duration" :min="5" :max="180" :step="5" style="width:100%" />
+          </el-form-item>
+          <el-form-item label="题目数量">
+            <el-input-number v-model="editForm.questionCount" :min="5" :max="100" style="width:100%" />
+          </el-form-item>
+        </div>
+        <el-form-item label="组卷方式">
+          <el-radio-group v-model="editForm.strategy">
+            <el-radio value="random">随机组卷</el-radio>
+            <el-radio value="manual">手动组卷</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="及格分数线">
+          <el-input-number v-model="editForm.passScore" :min="0" :max="100" :step="5" style="width:120px" />
+          <span style="margin-left:8px;color:var(--c-text-secondary);font-size:13px">分</span>
+        </el-form-item>
+        <el-form-item label="关联分类">
+          <el-select v-model="editForm.categories" multiple placeholder="选择分类" style="width:100%">
+            <el-option label="售后流程" value="售后流程" />
+            <el-option label="产品知识" value="产品知识" />
+            <el-option label="故障处理" value="故障处理" />
+            <el-option label="服务规范" value="服务规范" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showEditDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveEdit">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useRoute } from "vue-router";
-import { ArrowLeft, Edit, Share, Search, Download, CaretRight } from "@element-plus/icons-vue";
+import { ref, reactive, computed, onMounted } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { ArrowLeft, CaretRight, Share, Close, Search, Edit, Delete, Download } from "@element-plus/icons-vue"
+import { api } from "../api.js";
+import { ElMessage, ElMessageBox } from "element-plus"
 
+const router = useRouter()
 const route = useRoute();
 const activeTab = ref("scores");
 const candidateSearch = ref("");
+const loading = ref(false);
+const showGradeDialog = ref(false);
+const showEditDialog = ref(false)
+const editForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [] })
+const gradingPaper = ref({});
+const gradeScore = ref(0);
 
-const exam = ref({
-  id: route.params.id,
-  name: "售后流程季度考核 Q2",
-  type: "正式",
-  status: "进行中",
-  duration: 60,
-  questionCount: 50,
-  candidates: 48,
+const exam = ref({});
+const detail = ref({});
+const allCandidates = ref([]);
+
+const examCategories = computed(() => {
+  const cats = exam.value.categories;
+  if (!cats || !Array.isArray(cats) || cats.length === 0) return "全部";
+  return cats.join("、");
 });
 
-const passRate = computed(() => "83");
-const avgScore = computed(() => "76.5");
+const candidates = computed(() => allCandidates.value);
+const pendingCount = computed(() => allCandidates.value.filter(c => c.status === "待批改").length);
 
-const allCandidates = ref([
-  { id: 1, name: "张明", department: "售后一部", score: 88, duration: "52min", date: "2026-06-02 14:30" },
-  { id: 2, name: "李华", department: "售后二部", score: 45, duration: "48min", date: "2026-06-02 15:15" },
-  { id: 3, name: "王芳", department: "售后一部", score: 92, duration: "55min", date: "2026-06-02 10:00" },
-  { id: 4, name: "赵强", department: "技术部", score: 73, duration: "60min", date: "2026-06-03 09:30" },
-  { id: 5, name: "陈静", department: "售后二部", score: 68, duration: "58min", date: "2026-06-03 11:00" },
-  { id: 6, name: "刘洋", department: "售后一部", score: 55, duration: "50min", date: "2026-06-03 13:45" },
-]);
-
-const candidates = computed(() => {
+const filteredCandidates = computed(() => {
   if (!candidateSearch.value) return allCandidates.value;
-  return allCandidates.value.filter((c) => c.name.includes(candidateSearch.value));
+  return allCandidates.value.filter(c => c.name.includes(candidateSearch.value));
 });
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    const [examRes, detailRes, papersRes] = await Promise.all([
+      api.exams.get(route.params.id),
+      api.exams.detail(route.params.id),
+      api.exams.papers(route.params.id)
+    ]);
+    exam.value = examRes;
+    detail.value = detailRes;
+    allCandidates.value = (papersRes.items || []).map(p => ({
+      paper_id: p.paper_id, name: p.name, department: p.department || "",
+      score: p.score, status: p.status,
+      duration_used: p.duration_used, submitted_at: p.submitted_at
+    }));
+  } catch(e) { ElMessage.error("加载考试数据失败"); }
+  loading.value = false;
+});
+
+async function publishExam() {
+  try {
+    const res = await api.exams.updateStatus(route.params.id, "进行中");
+    exam.value.status = "进行中";
+    ElMessage.success(res.message);
+  } catch(e) { ElMessage.error("发布失败"); }
+}
+
+async function closeExam() {
+  try {
+    const res = await api.exams.updateStatus(route.params.id, "已结束");
+    exam.value.status = "已结束";
+    ElMessage.success(res.message);
+  } catch(e) { ElMessage.error("关闭失败"); }
+}
+
+function openGradeDialog(row) {
+  gradingPaper.value = row;
+  gradeScore.value = row.score || Math.round((exam.value.pass_score || 60) * 0.7);
+  showGradeDialog.value = true;
+}
+
+async function confirmGrade() {
+  try {
+    await api.answers.grade(gradingPaper.value.paper_id, { score: gradeScore.value });
+    ElMessage.success("批改完成");
+    showGradeDialog.value = false;
+    // Refresh
+    const papersRes = await api.exams.papers(route.params.id);
+    allCandidates.value = (papersRes.items || []).map(p => ({
+      paper_id: p.paper_id, name: p.name, department: p.department || "",
+      score: p.score, status: p.status,
+      duration_used: p.duration_used, submitted_at: p.submitted_at
+    }));
+  } catch(e) { ElMessage.error("批改失败"); }
+}
+
+function exportCandidates() {
+  const token = localStorage.getItem("token")
+  const a = document.createElement("a")
+  const url = "/api/exams/" + route.params.id + "/export"
+  fetch(url, { headers: { Authorization: "Bearer " + token } })
+    .then(r => r.blob())
+    .then(blob => {
+      a.href = URL.createObjectURL(blob)
+      a.download = "考核成绩_" + route.params.id + ".csv"
+      a.click()
+      URL.revokeObjectURL(a.href)
+    })
+    .catch(() => ElMessage.error("导出失败"))
+}
+
+function copyShareLink() {
+  const link = window.location.origin + "/exams/" + route.params.id + "/take";
+  navigator.clipboard.writeText(link).then(() => ElMessage.success("考试链接已复制"));
+}
+
+function openEditDialog() {
+  editForm.name = exam.value.name
+  editForm.type = exam.value.type
+  editForm.duration = exam.value.duration
+  editForm.questionCount = exam.value.question_count
+  editForm.passScore = exam.value.pass_score
+  editForm.strategy = exam.value.strategy
+  editForm.categories = exam.value.categories || []
+  showEditDialog.value = true
+}
+
+async function saveEdit() {
+  try {
+    await api.exams.update(route.params.id, {
+      name: editForm.name, type: editForm.type, duration: editForm.duration,
+      question_count: editForm.questionCount, pass_score: editForm.passScore,
+      strategy: editForm.strategy, categories: editForm.categories
+    })
+    ElMessage.success("更新成功")
+    showEditDialog.value = false
+    const examRes = await api.exams.get(route.params.id)
+    exam.value = examRes
+  } catch(e) { ElMessage.error("更新失败") }
+}
+
+function confirmDelete() {
+  ElMessageBox.confirm("确定要删除该考核吗？相关试卷记录也会被删除。", "确认删除", {
+    confirmButtonText: "删除", cancelButtonText: "取消", type: "warning"
+  }).then(async () => {
+    await api.exams.delete(route.params.id)
+    ElMessage.success("已删除")
+    router.push("/exams")
+  }).catch(() => {})
+}
 </script>
 
 <style scoped>
@@ -214,9 +412,7 @@ const candidates = computed(() => {
 }
 .search-sm { width: 200px; }
 
-.config-section {
-  padding: 8px 0;
-}
+.config-section { padding: 8px 0; }
 .config-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -239,5 +435,6 @@ const candidates = computed(() => {
   color: var(--c-text);
   font-weight: 500;
 }
-</style>
 
+.grade-form { padding: 8px 0; }
+</style>

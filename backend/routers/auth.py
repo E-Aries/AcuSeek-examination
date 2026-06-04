@@ -31,6 +31,16 @@ def get_current_user(token = Depends(oauth2_scheme), db = Depends(get_db)):
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+def require_admin(user = Depends(get_current_user)):
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="需要管理员权限")
+    return user
+
+def _hash_pw(pw):
+    salt = secrets.token_hex(16)
+    h = hashlib.sha256((salt + pw).encode()).hexdigest()
+    return salt + ":" + h
+
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db = Depends(get_db)):
     user = db.query(User).filter(User.username == req.username).first()
@@ -49,3 +59,14 @@ def login(req: LoginRequest, db = Depends(get_db)):
 @router.get("/me")
 def get_me(user = Depends(get_current_user)):
     return {"id": user.id, "name": user.name, "role": user.role, "department": user.department}
+
+@router.post("/register")
+def register(req: LoginRequest, db = Depends(get_db)):
+    existing = db.query(User).filter(User.username == req.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="用户已存在")
+    user = User(username=req.username, password_hash=_hash_pw(req.password), name=req.username, role="candidate")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"id": user.id, "message": "注册成功"}

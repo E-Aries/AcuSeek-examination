@@ -113,7 +113,7 @@
 
 <script setup>
 
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { Plus, Search, Clock, Document, UserFilled, ArrowRight, CaretRight } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage } from "element-plus";
@@ -121,17 +121,30 @@ import { ElMessage } from "element-plus";
 const search = ref("");
 const filterStatus = ref("");
 const showCreate = ref(false);
+const questionTypes = ref([]);
 const exams = ref([]);
 
 onMounted(async () => {
   try {
-    const res = await api.exams.list();
-    exams.value = (res.items || []).map(e => ({ ...e, questionCount: e.question_count, candidates: 0, date: e.status === "未开始" ? "待定" : "进行中" }));
+    const [examRes, byExamRes] = await Promise.all([
+      api.exams.list(),
+      api.results.byExam()
+    ]);
+    const examStats = {};
+    (byExamRes.items || []).forEach(r => { examStats[r.exam_id] = r.candidates; });
+    exams.value = (examRes.items || []).map(e => ({ ...e, questionCount: e.question_count, candidates: examStats[e.id] || 0, date: e.status === "未开始" ? "待定" : e.status }));
   } catch(e) { console.error(e); }
 });
 
 const createForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [], distribution: {} });
-
+// 当打开创建弹窗时，预填充题型分布
+watch(showCreate, (val) => {
+  if (val && questionTypes.value.length > 0 && Object.keys(createForm.distribution).length === 0) {
+    const dist = {};
+    questionTypes.value.forEach(type => { dist[type] = { count: 0 }; });
+    createForm.distribution = dist;
+  }
+});
 async function handleCreate() {
   try {
     await api.exams.create({ name: createForm.name, type: createForm.type, duration: createForm.duration, question_count: createForm.questionCount, pass_score: createForm.passScore, strategy: createForm.strategy, categories: createForm.categories, distribution: createForm.distribution });

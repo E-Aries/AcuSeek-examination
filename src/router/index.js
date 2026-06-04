@@ -21,6 +21,7 @@ const routes = [
         path: "questions",
         name: "Questions",
         component: () => import("../views/Questions.vue"),
+        meta: { requiresAdmin: true },
       },
       {
         path: "exams",
@@ -31,6 +32,7 @@ const routes = [
         path: "exams/:id",
         name: "ExamDetail",
         component: () => import("../views/ExamDetail.vue"),
+        meta: { requiresAdmin: true },
       },
       {
         path: "exams/:id/take",
@@ -46,6 +48,12 @@ const routes = [
         path: "results/:id",
         name: "ResultDetail",
         component: () => import("../views/ResultDetail.vue"),
+      },
+      {
+        path: "users",
+        name: "Users",
+        component: () => import("../views/Users.vue"),
+        meta: { requiresAdmin: true },
       },
     ],
   },
@@ -63,6 +71,13 @@ router.beforeEach((to) => {
   }
   if (to.name === "Login" && token) {
     return { name: "Dashboard" };
+  }
+  // Role guard: admin-only pages
+  if (to.meta?.requiresAdmin) {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      if (user.role !== "admin") return { name: "Dashboard" };
+    } catch(e) { return { name: "Login" }; }
   }
 });
 

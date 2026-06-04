@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="layout">
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
@@ -32,11 +32,11 @@
         text-color="var(--c-text-secondary)"
         active-text-color="var(--c-primary)"
       >
-        <el-menu-item index="/dashboard">
+        <el-menu-item v-if="userRole === 'admin'" index="/dashboard">
           <el-icon><Grid /></el-icon>
           <template #title>仪表盘</template>
         </el-menu-item>
-        <el-menu-item index="/questions">
+        <el-menu-item v-if="userRole === 'admin'" index="/questions">
           <el-icon><Notebook /></el-icon>
           <template #title>题库管理</template>
         </el-menu-item>
@@ -47,6 +47,10 @@
         <el-menu-item index="/results">
           <el-icon><DataAnalysis /></el-icon>
           <template #title>成绩查询</template>
+        </el-menu-item>
+        <el-menu-item v-if="userRole === 'admin'" index="/users">
+          <el-icon><User /></el-icon>
+          <template #title>用户管理</template>
         </el-menu-item>
       </el-menu>
 
@@ -120,6 +124,13 @@ import { Bell, ArrowDown, Fold, Expand } from "@element-plus/icons-vue";
 const route = useRoute();
 const router = useRouter();
 const sidebarCollapsed = ref(false);
+
+const userRole = computed(() => {
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    return u.role || "admin";
+  } catch(e) { return "admin"; }
+});
 
 const userName = computed(() => {
   try {

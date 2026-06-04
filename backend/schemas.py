@@ -45,3 +45,14 @@ class AnswerSubmit(BaseModel):
     questions: list
     answers: dict
     duration_used: int = 0
+
+
+class ExamUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    duration: Optional[int] = None
+    question_count: Optional[int] = None
+    pass_score: Optional[int] = None
+    strategy: Optional[str] = None
+    categories: Optional[list] = None
+    distribution: Optional[dict] = None

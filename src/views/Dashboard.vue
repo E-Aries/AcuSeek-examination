@@ -30,7 +30,7 @@
       </div>
       <div class="chart-card">
         <div class="chart-header">
-          <h3 class="chart-title">各科通过率</h3>
+          <h3 class="chart-title">各分类题目分布</h3>
           <el-tag size="small" effect="plain" round>整体</el-tag>
         </div>
         <div class="chart-body">
@@ -56,7 +56,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="candidates" label="参考人数" width="90" align="right" />
-          <el-table-column prop="avgScore" label="平均分" width="80" align="right">
+          <el-table-column prop="avgScore" label="均分" width="80" align="right">
             <template #default="{ row }">
               <span :style="{ color: row.avgScore >= 80 ? 'var(--c-success)' : row.avgScore >= 60 ? 'var(--c-warning)' : 'var(--c-danger)', fontWeight: 600 }">{{ row.avgScore }}</span>
             </template>
@@ -64,7 +64,7 @@
           <el-table-column prop="date" label="日期" width="100" />
           <el-table-column label="操作" width="60" fixed="right">
             <template #default>
-              <el-button text type="primary" size="small" @click="$router.push('/results')">详情</el-button>
+              <el-button text type="primary" size="small" @click="$router.push('/exams/' + (row.id || ''))">管理</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -90,7 +90,6 @@
 </template>
 
 <script setup>
-
 import { ref, computed, onMounted } from "vue";
 import VChart from "vue-echarts";
 import "echarts";
@@ -99,47 +98,68 @@ import { api } from "../api.js";
 const stats = ref([]);
 const recentExams = ref([]);
 const todos = ref([]);
+const monthlyData = ref([]);
+const categoryData = ref([]);
 
 onMounted(async () => {
   try {
-    const [qStats, rStats, examRes] = await Promise.all([
+    const [dash, qStats, rStats] = await Promise.all([
+      api.dashboard.get(),
       api.questions.stats(),
-      api.results.stats(),
-      api.exams.list()
+      api.results.stats()
     ]);
-    const totalQs = (qStats.items || []).reduce((s, i) => s + i.count, 0);
+    const totalQs = dash.total_questions || (qStats.items || []).reduce((s, i) => s + i.count, 0);
     stats.value = [
       { label: "题库总数", value: String(totalQs), icon: "Notebook", color: "var(--c-primary)", bg: "var(--c-primary-lighter)", trend: 0 },
-      { label: "考核场次", value: String(rStats.exams_count || 0), icon: "EditPen", color: "var(--c-accent)", bg: "var(--c-accent-bg)", trend: 0 },
-      { label: "参考人次", value: String(rStats.total_candidates || 0), icon: "UserFilled", color: "var(--c-info)", bg: "var(--c-info-bg)", trend: 0 },
+      { label: "考核场次", value: String(dash.total_exams || 0), icon: "EditPen", color: "var(--c-accent)", bg: "var(--c-accent-bg)", trend: 0 },
+      { label: "参考人次", value: String(dash.total_candidates || 0), icon: "UserFilled", color: "var(--c-info)", bg: "var(--c-info-bg)", trend: 0 },
       { label: "平均通过率", value: (rStats.pass_rate || 0) + "%", icon: "CircleCheck", color: "var(--c-success)", bg: "var(--c-success-bg)", trend: 0 },
     ];
-    recentExams.value = (examRes.items || []).slice(0, 5).map(e => ({
-      name: e.name, type: e.type, candidates: "-", avgScore: "-", date: e.status
+    monthlyData.value = dash.monthly_stats || [];
+    categoryData.value = dash.category_questions || [];
+    recentExams.value = (dash.recent_exams || []).map(e => ({
+      name: e.name, type: e.type,
+      candidates: e.candidates, avgScore: e.avg_score,
+      date: e.status, id: e.id
     }));
     todos.value = [
-      { text: "待批改试卷 " + (rStats.pending || 0) + " 份", meta: "需手动评分", urgent: (rStats.pending || 0) > 0 },
+      { text: "待批改试卷 " + (dash.pending || 0) + " 份", meta: "需手动评分", urgent: (dash.pending || 0) > 0 },
       { text: "确认本月考核安排", meta: "建议提前一周准备", urgent: false },
     ];
   } catch(e) { console.error(e); }
 });
 
+const monthLabels = computed(() => monthlyData.value.map(d => {
+  const parts = d.month.split("-");
+  return parts[1] + "月";
+}));
+const monthCounts = computed(() => monthlyData.value.map(d => d.count));
+
 const examChartOption = computed(() => ({
   grid: { left: 40, right: 16, top: 20, bottom: 24 },
-  xAxis: { type: "category", data: ["1月","2月","3月","4月","5月","6月"], axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
+  xAxis: { type: "category", data: monthLabels.value, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
   yAxis: { type: "value", splitLine: { lineStyle: { color: "#F0EFEC" } }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
-  series: [{ type: "bar", data: [8,12,15,10,18,14], barWidth: 28, borderRadius: [4,4,0,0], itemStyle: { color: "var(--c-primary)" } }],
+  series: [{ type: "bar", data: monthCounts.value, barWidth: 28, borderRadius: [4,4,0,0], itemStyle: { color: "var(--c-primary)" } }],
   tooltip: { trigger: "axis" },
 }));
 
-const passChartOption = computed(() => ({
-  grid: { left: 50, right: 30, top: 20, bottom: 24 },
-  xAxis: { type: "category", data: ["售后流程","产品知识","故障处理","服务规范","安全合规"], axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
-  yAxis: { type: "value", max: 100, splitLine: { lineStyle: { color: "#F0EFEC" } }, axisLabel: { color: "#9CA3AF", fontSize: 11, formatter: "{value}%" } },
-  series: [{ type: "bar", data: [92,85,78,88,95], barWidth: 24, borderRadius: [4,4,0,0], itemStyle: { color: (p) => [ "var(--c-primary)","var(--c-info)","var(--c-warning)","var(--c-primary-light)","var(--c-success)" ][p.dataIndex] }, label: { show: true, position: "top", formatter: "{c}%", color: "#6B7280", fontSize: 11, fontWeight: 600 } }],
-  tooltip: { trigger: "axis", formatter: (p) => p[0].name + "<br/>通过率：" + p[0].value + "%" },
-}));
-
+const passChartOption = computed(() => {
+  const names = categoryData.value.map(d => d.name);
+  const counts = categoryData.value.map(d => d.count);
+  return {
+    grid: { left: 50, right: 30, top: 20, bottom: 24 },
+    xAxis: { type: "category", data: names, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
+    yAxis: { type: "value", splitLine: { lineStyle: { color: "#F0EFEC" } }, axisLabel: { color: "#9CA3AF", fontSize: 11 } },
+    series: [{
+      type: "bar", data: counts.map((v, i) => ({
+        value: v, itemStyle: { color: (categoryData.value[i] && categoryData.value[i].color) || "var(--c-primary)" }
+      })),
+      barWidth: 24, borderRadius: [4,4,0,0],
+      label: { show: true, position: "top", formatter: "{c}题", color: "#6B7280", fontSize: 11, fontWeight: 600 }
+    }],
+    tooltip: { trigger: "axis", formatter: (p) => p[0].name + "<br/>题目数：" + p[0].value + " 题" },
+  };
+});
 </script>>
 
 <style scoped>
