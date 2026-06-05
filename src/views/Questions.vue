@@ -1,30 +1,26 @@
-﻿<template>
+
+<template>
   <div class="questions-page">
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <el-button type="primary" :icon="Plus" @click="showDialog = true">新增题目</el-button>
+        <el-button type="primary" :icon="Plus" @click="showDialog = true; editingId = null">新增题目</el-button>
         <el-button :icon="Upload" @click="handleImport">批量导入</el-button>
         <el-button :icon="Download" @click="handleExport">导出模板</el-button>
       </div>
       <div class="toolbar-right">
-        <el-input v-model="search" placeholder="搜索题目内容..." clearable :prefix-icon="Search" class="search-input" />
+        <el-select v-model="filterType" placeholder="题型" clearable size="small" style="width:100px">
+          <el-option label="单选" value="单选" />
+          <el-option label="多选" value="多选" />
+          <el-option label="判断" value="判断" />
+          <el-option label="填空" value="填空" />
+          <el-option label="简答" value="简答" />
+        </el-select>
+        <el-select v-model="filterCategory" placeholder="分类" clearable size="small" style="width:120px">
+          <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
+        </el-select>
+        <el-input v-model="search" placeholder="搜索题目..." clearable :prefix-icon="Search" class="search-input" />
       </div>
-    </div>
-
-    <!-- Filter bar -->
-    <div class="filter-bar">
-      <el-radio-group v-model="filterType" size="small">
-        <el-radio-button value="">全部题型</el-radio-button>
-        <el-radio-button value="单选">单选题</el-radio-button>
-        <el-radio-button value="多选">多选题</el-radio-button>
-        <el-radio-button value="判断">判断题</el-radio-button>
-        <el-radio-button value="填空">填空题</el-radio-button>
-        <el-radio-button value="简答">简答题</el-radio-button>
-      </el-radio-group>
-      <el-select v-model="filterCategory" placeholder="分类" clearable size="small" style="width: 140px">
-        <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
-      </el-select>
     </div>
 
     <!-- Batch action bar -->
@@ -33,134 +29,137 @@
       <el-button type="danger" size="small" :icon="Delete" @click="handleBatchDelete">批量删除</el-button>
       <el-button size="small" :icon="Download" @click="handleBatchExport">导出CSV</el-button>
       <el-button size="small" @click="showCategoryDialog = true">改分类</el-button>
-      <el-button text size="small" @click="clearSelection">取消选择</el-button>
+      <el-button size="small" @click="clearSelection">取消选择</el-button>
     </div>
 
     <!-- Table -->
-    <el-card shadow="never" class="table-card">
-      <el-table :data="filteredQuestions" stripe style="width: 100%" ref="dataTable" @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="40" />
-        <el-table-column label="题目" min-width="320">
-          <template #default="scope">
-            <div class="question-cell" style="cursor:pointer" @click="previewQuestion(scope.row)">
-              <el-tag :type="typeTag(scope.row.type)" size="small" effect="plain" class="q-type">{{ scope.row.type }}</el-tag>
-              <span class="q-text">{{ scope.row.content }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="category" label="分类" width="100" />
-        <el-table-column label="难度" width="80">
-          <template #default="scope">
-            <el-rate v-model="scope.row.difficulty" :max="3" disabled :colors="['var(--c-success)', 'var(--c-warning)', 'var(--c-danger)']" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="使用次数" width="80" align="right" prop="used" />
-        <el-table-column label="最近使用" width="90" prop="lastUsed" />
-        <el-table-column label="解析" width="60" align="center">
-          <template #default="scope">
-            <el-tooltip v-if="scope.row.explanation" :content="scope.row.explanation" placement="top" max-width="400">
-              <el-icon :size="16" style="color:var(--c-text-tertiary);cursor:pointer"><InfoFilled /></el-icon>
-            </el-tooltip>
-            <span v-else style="color:var(--c-text-tertiary);font-size:12px">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
-          <template #default="scope">
-            <el-button text type="primary" size="small" @click="editQuestion(scope.row)">编辑</el-button>
-            <el-button text type="danger" size="small" @click="deleteQuestion(scope.row.id)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <div class="pagination-wrap">
-        <el-pagination
-          v-model:current-page="currentPage"
-          :page-size="15"
-          :total="filteredQuestions.length"
-          layout="total, prev, pager, next"
-          background
-          small
-        />
-      </div>
-    </el-card>
+    <el-table :data="filteredQuestions" stripe style="width: 100%" ref="dataTable" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="40" />
+      <el-table-column label="题型" prop="type" width="70" />
+      <el-table-column label="分类" prop="category" width="100" />
+      <el-table-column label="题目" prop="content" min-width="200" show-overflow-tooltip />
+      <el-table-column label="难度" prop="difficulty" width="70" align="center">
+        <template #default="scope">
+          <el-rate v-model="scope.row.difficulty" disabled :max="3" size="small" />
+        </template>
+      </el-table-column>
+      <el-table-column label="分值" prop="score" width="60" align="center" />
+      <el-table-column label="操作" width="160" fixed="right">
+        <template #default="scope">
+          <el-button text type="primary" size="small" @click="previewQuestion(scope.row)">预览</el-button>
+          <el-button text type="primary" size="small" @click="editQuestion(scope.row)">编辑</el-button>
+          <el-popconfirm title="确定删除？" @confirm="handleDelete(scope.row.id)">
+            <template #reference>
+              <el-button text type="danger" size="small">删除</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
 
-    <!-- Add/Edit Dialog -->
-    <el-dialog v-model="showDialog" :title="editingId ? '编辑题目' : '新增题目'" width="600px" :close-on-click-modal="false">
-      <el-form :model="newQuestion" label-width="80px" label-position="top">
-        <el-form-item label="题型">
-          <el-radio-group v-model="newQuestion.type">
-            <el-radio value="单选">单选题</el-radio>
-            <el-radio value="多选">多选题</el-radio>
-            <el-radio value="判断">判断题</el-radio>
-            <el-radio value="填空">填空题</el-radio>
-            <el-radio value="简答">简答题</el-radio>
+    <!-- Pagination -->
+    <div class="pagination-wrap">
+      <el-pagination
+        v-model:current-page="currentPage"
+        :page-size="20"
+        :total="total"
+        layout="total, prev, pager, next"
+        @current-change="loadQuestions"
+      />
+    </div>
+
+    <!-- Create / Edit Dialog -->
+    <el-dialog v-model="showDialog" :title="editingId ? '编辑题目' : '新增题目'" width="700px" :close-on-click-modal="false">
+      <el-form label-position="top">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <el-form-item label="题型">
+            <el-select v-model="form.type">
+              <el-option label="单选" value="单选" />
+              <el-option label="多选" value="多选" />
+              <el-option label="判断" value="判断" />
+              <el-option label="填空" value="填空" />
+              <el-option label="简答" value="简答" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="分类">
+            <el-select v-model="form.category" allow-create filterable placeholder="选择或新建分类">
+              <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="分值">
+            <el-input-number v-model="form.score" :min="1" :max="100" style="width:100%" />
+          </el-form-item>
+        </div>
+        <el-form-item label="题目内容">
+          <el-input v-model="form.content" type="textarea" :rows="3" placeholder="请输入题目内容" />
+        </el-form-item>
+        <div v-if="form.type === '单选' || form.type === '多选'" class="options-group">
+          <div class="options-header">
+            <span class="options-title">选项</span>
+            <el-button size="small" :icon="Plus" @click="addOption">添加选项</el-button>
+          </div>
+          <div v-for="(opt, i) in form.options" :key="i" class="option-row">
+            <span class="option-label">{{ labels[i] }}</span>
+            <el-input v-model="opt.text" placeholder="选项内容" />
+            <el-button text type="danger" size="small" :icon="Delete" @click="form.options.splice(i, 1)" />
+          </div>
+          <div v-if="form.type === '单选'" class="answer-row">
+            <span class="option-label">答案</span>
+            <el-radio-group v-model="form.answer">
+              <el-radio v-for="(opt, i) in form.options" :key="i" :value="labels[i]">{{ labels[i] }}</el-radio>
+            </el-radio-group>
+          </div>
+          <div v-else class="answer-row">
+            <span class="option-label">答案</span>
+            <el-checkbox-group v-model="multiAnswer">
+              <el-checkbox v-for="(opt, i) in form.options" :key="i" :label="labels[i]" :value="labels[i]">{{ labels[i] }}</el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+        <el-form-item v-if="form.type === '判断'" label="答案">
+          <el-radio-group v-model="form.answer">
+            <el-radio value="正确">正确</el-radio>
+            <el-radio value="错误">错误</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="newQuestion.category" placeholder="选择分类" style="width: 100%">
-            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="题目内容">
-          <el-input v-model="newQuestion.content" type="textarea" :rows="3" placeholder="请输入题目内容" />
-        </el-form-item>
-        <el-form-item v-if="['单选','多选','判断'].includes(newQuestion.type)" label="选项">
-          <div class="options-list">
-            <div v-for="(opt, i) in newQuestion.options" :key="i" class="option-row">
-              <el-tag :type="opt.correct ? 'success' : 'info'" size="small" style="cursor:pointer" @click="opt.correct = !opt.correct">
-                {{ opt.correct ? '正确' : '错误' }}
-              </el-tag>
-              <el-input v-model="opt.label" size="small" :placeholder="`选项 ${String.fromCharCode(65 + i)}`" style="width: 80px" />
-              <el-input v-model="opt.text" size="small" placeholder="选项内容" />
-              <el-button v-if="newQuestion.options.length > 2" :icon="Delete" text size="small" @click="newQuestion.options.splice(i, 1)" />
-            </div>
-          </div>
-          <el-button size="small" text type="primary" @click="newQuestion.options.push({ label: '', text: '', correct: false })">+ 添加选项</el-button>
-        </el-form-item>
-        <el-form-item label="难度">
-          <el-rate v-model="newQuestion.difficulty" :max="3" :colors="['var(--c-success)', 'var(--c-warning)', 'var(--c-danger)']" show-text />
+        <el-form-item v-if="form.type === '填空'" label="答案">
+          <el-input v-model="form.answer" placeholder="填空答案" />
         </el-form-item>
         <el-form-item label="解析">
-          <el-input v-model="newQuestion.explanation" type="textarea" :rows="2" placeholder="答案解析（选填）" />
+          <el-input v-model="form.explanation" type="textarea" :rows="2" placeholder="答案解析（可选）" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showDialog = false; editingId = null">取消</el-button>
-        <el-button type="primary" @click="saveQuestion">保存</el-button>
+        <el-button @click="showDialog = false">取消</el-button>
+        <el-button type="primary" @click="handleSave">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+
     <!-- Batch category dialog -->
-    <el-dialog v-model="showCategoryDialog" title="批量改分类" width="400px" :close-on-click-modal="false">
-      <el-form label-width="80px">
-        <el-form-item label="目标分类">
-          <el-select v-model="batchCategory" placeholder="选择分类" style="width: 100%">
-            <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
-          </el-select>
-        </el-form-item>
-      </el-form>
+    <el-dialog v-model="showCategoryDialog" title="批量修改分类" width="400px">
+      <el-select v-model="batchCategory" placeholder="选择分类" style="width:100%">
+        <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
+      </el-select>
       <template #footer>
         <el-button @click="showCategoryDialog = false">取消</el-button>
         <el-button type="primary" @click="handleBatchUpdateCategory">确认</el-button>
       </template>
     </el-dialog>
 
-    <!-- Question preview dialog -->
-    <el-dialog v-model="showPreview" title="题目详情" width="600px" :close-on-click-modal="false">
-      <div v-if="previewData" class="preview-body">
-        <div class="preview-header">
-          <el-tag :type="typeTag(previewData.type)" size="small" effect="plain">{{ previewData.type }}</el-tag>
-          <span class="preview-category">{{ previewData.category }}</span>
-          <span class="preview-difficulty">
-            <el-rate v-model="previewData.difficulty" :max="3" disabled :colors="['var(--c-success)','var(--c-warning)','var(--c-danger)']" size="small" />
-          </span>
-          <span class="preview-score">{{ previewData.score }} 分</span>
+    <!-- Preview Dialog -->
+    <el-dialog v-model="showPreview" title="题目预览" width="600px" :close-on-click-modal="false">
+      <div v-if="previewData" class="preview-wrap">
+        <div class="preview-meta">
+          <el-tag size="small">{{ previewData.type }}</el-tag>
+          <el-tag size="small" type="info">{{ previewData.category }}</el-tag>
+          <el-tag size="small">{{ previewData.score }}分</el-tag>
         </div>
         <div class="preview-content">{{ previewData.content }}</div>
         <div v-if="previewData.options && previewData.options.length" class="preview-options">
-          <div v-for="(opt, i) in previewData.options" :key="i" class="preview-option">
-            <span class="preview-opt-label">{{ opt.label }}.</span>
-            <span class="preview-opt-text">{{ opt.text }}</span>
-            <el-tag v-if="isCorrectAnswer(opt.label)" type="success" size="small" effect="dark" class="preview-correct-badge">正确答案</el-tag>
+          <div v-for="opt in previewData.options" :key="opt.label" class="preview-option" :class="{ correct: isCorrectAnswer(opt.label) }">
+            <span class="po-label">{{ opt.label }}.</span>
+            <span class="po-text">{{ opt.text }}</span>
+            <el-icon v-if="isCorrectAnswer(opt.label)" style="color:var(--c-success)"><CircleCheck /></el-icon>
           </div>
         </div>
         <div v-if="previewData.answer" class="preview-answer">
@@ -173,12 +172,12 @@
         </div>
       </div>
     </el-dialog>
+  </div>
 </template>
 
 <script setup>
-
-import { ref, computed, onMounted } from "vue";
-import { Plus, Upload, Download, Search, Delete , InfoFilled } from "@element-plus/icons-vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { Plus, Upload, Download, Search, Delete , InfoFilled, CircleCheck } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage, ElMessageBox } from "element-plus";
 
@@ -186,6 +185,7 @@ const search = ref("");
 const filterType = ref("");
 const filterCategory = ref("");
 const currentPage = ref(1);
+const total = ref(0);
 const showDialog = ref(false);
 const questions = ref([]);
 const categories = ref([]);
@@ -195,6 +195,172 @@ const showCategoryDialog = ref(false);
 const batchCategory = ref("");
 const showPreview = ref(false);
 const previewData = ref(null);
+const labels = ["A","B","C","D","E","F","G","H"];
+
+const form = ref({ type:"单选", category:"", content:"", options:[{text:""},{text:""}], answer:"", explanation:"", score:2, difficulty:1 });
+const multiAnswer = ref([]);
+
+watch(() => form.value.type, (t) => {
+  if (t === "单选" || t === "多选") {
+    if (form.value.options.length < 2) form.value.options = [{text:""},{text:""}];
+  }
+  if (t !== "多选") multiAnswer.value = [];
+});
+
+watch(multiAnswer, (val) => {
+  if (form.value.type === "多选") form.value.answer = JSON.stringify(val);
+});
+
+onMounted(async () => {
+  try {
+    const [qRes, catRes] = await Promise.all([api.questions.list({size:100}), api.categories.list()]);
+    questions.value = (qRes.items || []);
+    total.value = qRes.total || 0;
+    categories.value = (catRes.items || []);
+  } catch(e) { console.error(e); }
+});
+
+const filteredQuestions = computed(() => {
+  let list = questions.value;
+  if (filterType.value) list = list.filter(q => q.type === filterType.value);
+  if (filterCategory.value) list = list.filter(q => q.category === filterCategory.value);
+  if (search.value) list = list.filter(q => q.content.includes(search.value));
+  return list;
+});
+
+function addOption() {
+  if (form.value.options.length < 8) form.value.options.push({text:""});
+}
+
+function editQuestion(row) {
+  editingId.value = row.id;
+  form.value = {
+    type: row.type || "单选",
+    category: row.category || "",
+    content: row.content || "",
+    options: JSON.parse(JSON.stringify(row.options || [{text:""},{text:""}])),
+    answer: row.answer || "",
+    explanation: row.explanation || "",
+    score: row.score || 2,
+    difficulty: row.difficulty || 1,
+  };
+  if (row.type === "多选") {
+    try { multiAnswer.value = JSON.parse(row.answer); } catch(e) { multiAnswer.value = []; }
+  }
+  showDialog.value = true;
+}
+
+async function handleSave() {
+  try {
+    if (editingId.value) {
+      await api.questions.update(editingId.value, form.value);
+      ElMessage.success("更新成功");
+    } else {
+      await api.questions.create(form.value);
+      ElMessage.success("创建成功");
+    }
+    showDialog.value = false;
+    const qRes = await api.questions.list({size:100});
+    questions.value = (qRes.items || []);
+  } catch(e) { ElMessage.error("保存失败"); }
+}
+
+async function handleDelete(id) {
+  try { await api.questions.delete(id); ElMessage.success("删除成功"); questions.value = questions.value.filter(q => q.id !== id); } catch(e) { ElMessage.error("删除失败"); }
+}
+
+function handleSelectionChange(val) {
+  multipleSelection.value = val;
+}
+
+function clearSelection() {
+  multipleSelection.value = [];
+}
+
+async function handleBatchDelete() {
+  if (multipleSelection.value.length === 0) return;
+  try {
+    await ElMessageBox.confirm("确定删除选中的 " + multipleSelection.value.length + " 道题？", "确认删除");
+    const ids = multipleSelection.value.map(q => q.id);
+    await api.questions.batchDelete(ids);
+    ElMessage.success("删除成功");
+    multipleSelection.value = [];
+    const qRes = await api.questions.list({size:100});
+    questions.value = (qRes.items || []);
+  } catch(e) { if (e !== "cancel") ElMessage.error("删除失败"); }
+}
+
+async function handleBatchExport() {
+  if (multipleSelection.value.length === 0) return;
+  try {
+    const ids = multipleSelection.value.map(q => q.id);
+    const resp = await api.questions.batchExport(ids);
+    const blob = await resp.blob();
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "选中题目.csv"; a.click();
+  } catch(e) { ElMessage.error("导出失败"); }
+}
+
+async function handleBatchUpdateCategory() {
+  if (multipleSelection.value.length === 0 || !batchCategory.value) return;
+  try {
+    const ids = multipleSelection.value.map(q => q.id);
+    await api.questions.batchCategory(ids, batchCategory.value);
+    ElMessage.success("更新成功");
+    batchCategory.value = "";
+    multipleSelection.value = [];
+    showCategoryDialog.value = false;
+    const qRes = await api.questions.list({size:100});
+    questions.value = (qRes.items || []);
+  } catch(e) { ElMessage.error("更新失败"); }
+}
+
+function handleImport() {
+  ElMessage.info("请下载模板按格式填写：题型、分类、题目内容、选项A-D、答案、解析、分值、难度");
+  const input = document.createElement("input");
+  input.type = "file"; input.accept = ".xlsx,.csv";
+  input.onchange = async (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/questions/import", { method: "POST", headers: { "Authorization": "Bearer " + localStorage.getItem("token") }, body: formData });
+      const data = await res.json();
+      ElMessage.success(data.message);
+      const qRes = await api.questions.list({size:100});
+      questions.value = (qRes.items || []);
+    } catch(e) { ElMessage.error("导入失败"); }
+  };
+  input.click();
+}
+
+function handleExport() {
+  const cols = ["题型","分类","题目内容","选项A","选项B","选项C","选项D","答案","解析","分值","难度"];
+  const csv = [cols.join(",")];
+  const samples = [
+    { type:"单选", category:"产品知识", content:"XX 产品的标准保修期限是?", optA:"1年", optB:"2年", optC:"3年", optD:"5年", answer:"A", explanation:"标准保修1年", score:2, difficulty:1 },
+    { type:"多选", category:"产品知识", content:"以下哪些属于核心功能?", optA:"用户管理", optB:"权限控制", optC:"数据报表", optD:"邮件发送", answer:"A,B", explanation:"用户管理和权限控制是核心功能", score:3, difficulty:2 },
+    { type:"判断", category:"故障处理", content:"设备红灯闪烁表示正常运行.", optA:"正确", optB:"错误", answer:"错误", explanation:"红灯闪烁表示故障", score:1, difficulty:1 },
+    { type:"填空", category:"售后流程", content:"客户投诉应在 ____ 小时内响应.", answer:"24", explanation:"SLA要求24小时内响应", score:2, difficulty:1 },
+    { type:"简答", category:"故障处理", content:"简述设备无法开机的排查步骤.", answer:"", explanation:"检查电源、开关、保险丝等", score:5, difficulty:3 },
+  ];
+  function esc(v) {
+    const q = String.fromCharCode(34); // double quote
+    const s = String(v || "");
+    if (s.indexOf(q) >= 0 || s.indexOf(String.fromCharCode(44)) >= 0) {
+      return q + s.split(q).join(q + q) + q;
+    }
+    return s;
+  }
+
+  samples.forEach(s => {
+    const row = [esc(s.type), esc(s.category), esc(s.content), esc(s.optA), esc(s.optB), esc(s.optC), esc(s.optD), esc(s.answer), esc(s.explanation), esc(s.score), esc(s.difficulty)];
+    csv.push(row.join(","));
+  });
+  const blob = new Blob(["\ufeff" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "题库模板.csv"; a.click();
+}
+
 
 function previewQuestion(row) {
   previewData.value = { ...row };
@@ -225,314 +391,36 @@ function isCorrectAnswer(label) {
   return d.answer === label;
 }
 
-function handleSelectionChange(val) {
-  multipleSelection.value = val;
-}
-
-function clearSelection() {
-  multipleSelection.value = [];
-}
-
-async function handleBatchDelete() {
-  if (multipleSelection.value.length === 0) return;
-  try {
-    await ElMessageBox.confirm("确定删除选中的 " + multipleSelection.value.length + " 道题？", "确认删除");
-    const ids = multipleSelection.value.map(q => q.id);
-    await api.questions.batchDelete(ids);
-    const qRes = await api.questions.list({size: 100});
-    questions.value = (qRes.items || []).map(q2 => ({ ...q2, difficulty: q2.difficulty || 1, options: q2.options || [] }));
-    multipleSelection.value = [];
-    ElMessage.success("删除成功");
-  } catch(e) {}
-}
-
-async function handleBatchExport() {
-  if (multipleSelection.value.length === 0) return;
-  try {
-    const ids = multipleSelection.value.map(q => q.id);
-    const resp = await api.questions.batchExport(ids);
-    const blob = await resp.blob();
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "选中题目.csv";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } catch(e) {
-    ElMessage.error("导出失败");
-  }
-}
-
-async function handleBatchUpdateCategory() {
-  if (multipleSelection.value.length === 0 || !batchCategory.value) return;
-  try {
-    const ids = multipleSelection.value.map(q => q.id);
-    await api.questions.batchCategory(ids, batchCategory.value);
-    const qRes = await api.questions.list({size: 100});
-    questions.value = (qRes.items || []).map(q2 => ({ ...q2, difficulty: q2.difficulty || 1, options: q2.options || [] }));
-    showCategoryDialog.value = false;
-    batchCategory.value = "";
-    multipleSelection.value = [];
-    ElMessage.success("分类更新成功");
-  } catch(e) {
-    ElMessage.error("操作失败");
-  }
-}
-
-onMounted(async () => {
-  try {
-    const [qRes, catRes] = await Promise.all([
-      api.questions.list({size: 100}),
-      api.categories.list()
-    ]);
-    questions.value = (qRes.items || []).map(q => ({ ...q, difficulty: q.difficulty || 1, options: q.options || [], used: q.used_count || 0, lastUsed: "" }));
-    categories.value = (catRes.items || []);
-  } catch(e) { console.error(e); }
-});
-
-const newQuestion = ref({ type: "单选", category: "", content: "", options: [{ label: "A", text: "", correct: false }, { label: "B", text: "", correct: false }], difficulty: 1, explanation: "", answer: "" });
-
-const filteredQuestions = computed(() => {
-  let list = questions.value;
-  if (filterType.value) list = list.filter(q => q.type === filterType.value);
-  if (filterCategory.value) list = list.filter(q => q.category === filterCategory.value);
-  if (search.value) list = list.filter(q => q.content.includes(search.value));
-  return list;
-});
-
-function typeTag(type) { return { "单选": "", "多选": "success", "判断": "warning", "填空": "info", "简答": "danger" }[type] || ""; }
-
-async function saveQuestion() {
-  const q = { ...newQuestion.value };
-  if (["单选", "判断"].includes(q.type)) q.answer = q.options.find(o => o.correct)?.label || "";
-  else if (q.type === "多选") q.answer = JSON.stringify(q.options.filter(o => o.correct).map(o => o.label));
-  try {
-    if (editingId.value) { await api.questions.update(editingId.value, q); ElMessage.success("更新成功"); }
-    else { await api.questions.create(q); ElMessage.success("创建成功"); }
-    showDialog.value = false;
-    editingId.value = null;
-    const qRes = await api.questions.list({size: 100});
-    questions.value = (qRes.items || []).map(q2 => ({ ...q2, difficulty: q2.difficulty || 1, options: q2.options || [] }));
-  } catch(e) { ElMessage.error("操作失败"); }
-}
-
-async function deleteQuestion(id) {
-  try {
-    await ElMessageBox.confirm("确定删除此题？", "确认");
-    await api.questions.delete(id);
-    questions.value = questions.value.filter(q => q.id !== id);
-    ElMessage.success("删除成功");
-  } catch(e) {}
-}
-
-function handleImport() {
-  const input = document.createElement("input");
-  input.type = "file"; input.accept = ".xlsx,.csv";
-  input.onchange = async (ev) => {
-    const file = ev.target.files[0];
-    if (!file) return;
-    const form = new FormData();
-    form.append("file", file);
-    try {
-      const res = await fetch("/api/questions/import", { method: "POST", headers: { "Authorization": "Bearer " + localStorage.getItem("token") }, body: form });
-      const data = await res.json();
-      ElMessage.success(data.message);
-      const qRes = await api.questions.list({size: 100});
-      questions.value = (qRes.items || []).map(q2 => ({ ...q2, difficulty: q2.difficulty || 1, options: q2.options || [] }));
-    } catch(e) { ElMessage.error("导入失败"); }
-  };
-  input.click();
-}
-
-function handleExport() {
-  const csv = ["题型,分类,题目内容,选项,答案,难度,分值"];
-  questions.value.forEach(q => {
-    csv.push(q.type + "," + q.category + ",\"" + q.content + "\",\"" + JSON.stringify(q.options || []) + "\"," + (q.answer || "") + "," + (q.difficulty || 1) + "," + (q.score || 2));
-  });
-  const blob = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "题库模板.csv"; a.click();
-}
-
-function editQuestion(row) {
-  editingId.value = row.id;
-  newQuestion.value = { ...newQuestion.value, ...row, options: row.options || [], explanation: row.explanation || "" };
-  showDialog.value = true;
-}
-
-</script>>
+async function loadQuestions() {}
+</script>
 
 <style scoped>
-.questions-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.questions-page { display: flex; flex-direction: column; gap: 16px; }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.toolbar-left {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.toolbar-right {
-  display: flex;
-}
-.search-input {
-  width: 260px;
-}
-.search-input :deep(.el-input__wrapper) {
-  border-radius: var(--radius-sm);
-}
+.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.toolbar-right { display: flex; gap: 8px; align-items: center; }
+.search-input { width: 220px; }
 
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.batch-bar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--c-primary-lighter); border-radius: var(--radius-md); }
+.batch-info { font-size: 13px; font-weight: 600; color: var(--c-primary); }
 
-.table-card {
-  border-radius: var(--radius-lg);
-}
-.question-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.q-type {
-  flex-shrink: 0;
-  min-width: 48px;
-  text-align: center;
-}
-.q-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.pagination-wrap { display: flex; justify-content: center; }
 
-.pagination-wrap {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 16px;
-}
+.options-group { border: 1px solid var(--c-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px; }
+.options-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.options-title { font-weight: 600; font-size: 14px; }
+.option-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.option-label { width: 24px; font-weight: 700; color: var(--c-primary); text-align: center; flex-shrink: 0; }
+.answer-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--c-border-light); }
 
-.options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.option-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.batch-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  background: var(--el-fill-color-light);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--el-border-color-light);
-}
-.batch-info {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-  margin-right: 4px;
-}
-
-.preview-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.preview-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.preview-category {
-  font-size: 13px;
-  color: var(--c-text-secondary);
-}
-.preview-difficulty {
-  display: inline-flex;
-  align-items: center;
-}
-.preview-score {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-primary);
-  margin-left: auto;
-}
-.preview-content {
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--c-text);
-  padding: 12px 0;
-  border-top: 1px solid var(--c-border-light);
-}
-.preview-options {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.preview-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--c-border-light);
-  border-radius: var(--radius-sm);
-}
-.preview-opt-label {
-  font-weight: 600;
-  color: var(--c-text);
-  min-width: 20px;
-}
-.preview-opt-text {
-  color: var(--c-text-secondary);
-}
-.preview-correct-badge {
-  margin-left: auto;
-}
-.preview-answer {
-  padding: 10px 12px;
-  background: var(--c-success-bg);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--c-success);
-}
-.preview-answer-label {
-  font-weight: 600;
-  color: var(--c-success);
-  font-size: 13px;
-}
-.preview-answer-text {
-  color: var(--c-text);
-  margin-left: 8px;
-}
-.preview-explanation {
-  padding: 10px 12px;
-  background: var(--c-warning-bg);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--c-warning);
-}
-.preview-explanation-label {
-  font-weight: 600;
-  color: var(--c-warning);
-  font-size: 13px;
-}
-.preview-explanation-text {
-  color: var(--c-text-secondary);
-  margin: 4px 0 0;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
+.preview-wrap { display: flex; flex-direction: column; gap: 14px; }
+.preview-meta { display: flex; gap: 8px; }
+.preview-content { font-size: 16px; line-height: 1.6; padding: 12px 0; }
+.preview-options { display: flex; flex-direction: column; gap: 8px; }
+.preview-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--c-bg); }
+.preview-option.correct { background: var(--c-success-bg); border: 1px solid var(--c-success-lighter); }
+.po-label { font-weight: 700; color: var(--c-text-secondary); }
+.preview-answer-label, .preview-explanation-label { font-weight: 600; color: var(--c-text-secondary); }
+.preview-answer-text { color: var(--c-success); font-weight: 600; }
+.preview-explanation-text { font-size: 13px; color: var(--c-text-secondary); line-height: 1.5; }
 </style>

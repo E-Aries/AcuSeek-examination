@@ -57,6 +57,7 @@ export const api = {
     delete: (id) => request(`/exams/${id}`, { method: "DELETE" }),
     generate: (id) => request(`/exams/${id}/generate`, { method: "POST" }),
     questions: (id) => request(`/exams/${id}/questions`),
+    retake: (eid, uid) => request(`/exams/${eid}/retake/${uid}`, { method: "POST" }),
     paper: (pid) => request(`/exams/paper/${pid}`),
   },
   answers: {
@@ -94,5 +95,6 @@ export const api = {
     byExam: () => request("/results/by-exam"),
     get: (id) => request(`/results/${id}`),
     stats: () => request("/results/stats"),
+    my: () => request("/results/my"),
   },
 };

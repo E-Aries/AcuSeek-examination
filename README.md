@@ -4,127 +4,120 @@
 
 ---
 
-## 功能概览
-
-| 模块 | 功能 |
-|---|---|
-| 登录认证 | 账号密码登录，JWT 令牌鉴权，支持管理员/考生两种角色 |
-| 仪表盘 | 考试概况、通过率统计、成绩分布图表（ECharts） |
-| 题库管理 | 题目增删改查，支持单选/多选/判断题，按分类筛选 |
-| 考试管理 | 创建考试、随机组卷 / 按分类比例组卷、设置时长和及格分 |
-| 在线考试 | 计时答题、自动提交、答题卡导航 |
-| 成绩管理 | 自动阅卷评分、成绩明细查看、试卷回看 |
-
-## 技术栈
-
-**前端**
-- Vue 3（Composition API）
-- Vite 8
-- Element Plus 2
-- ECharts 6 + vue-echarts
-- Pinia（状态管理）
-- Vue Router 4
-
-**后端**
-- Python 3.10+
-- FastAPI
-- SQLAlchemy 2.0 + SQLite
-- Pydantic 2
-- python-jose（JWT 认证）
-- passlib + bcrypt（密码加密）
-
 ## 快速启动
 
-### 1. 启动后端
+### 后端
 
-\\\\\ash
+```bash
 cd backend
 pip install -r requirements.txt
-python main.py
-\\\\
-后端默认运行在 http://localhost:8000
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
-API 文档访问 http://localhost:8000/docs（Swagger UI）
+首次启动自动创建 SQLite 数据库。
 
-首次启动会自动创建 SQLite 数据库 \exam.db\ 并生成默认管理员账号。
+### 前端
 
-### 2. 初始化数据（可选）
-
-\\\\\ash
-python seed.py
-\\\\
-该脚本会向数据库注入示例题目和考试数据，方便快速体验。
-
-### 3. 启动前端
-
-\\\\\ash
+```bash
 npm install
-npm run dev
-\\\\
-前端默认运行在 http://localhost:5173
+npm run dev     # 开发模式（5173 端口）
+npm run build   # 生产构建
+```
 
 ---
 
 ## 默认账号
 
-启动后端并执行 \seed.py\ 后：
-
 | 角色 | 用户名 | 密码 |
-|---|---|---|
-| 管理员 | \dmin\ | \dmin123\ |
-| 考生 | \candidate\ | \candidate123\ |
+|------|--------|------|
+| 管理员 | admin | admin123 |
+| 考生 | 1234 | 1234 |
 
-（建议首次登录后修改密码）
+## 功能清单
+
+### 已实现
+
+| 模块 | 功能 | 说明 |
+|------|------|------|
+| 仪表盘 | 数据概览 | 考核概况、通过率、成绩分布图 |
+| 题库管理 | 增删改查 | 单选/多选/判断题，按分类筛选 |
+| 题库管理 | 批量操作 | 批量删除/导出CSV/改分类 |
+| 题库管理 | 分类管理 | 创建/编辑/删除分类 |
+| 题库管理 | 题目解析 | 每道题支持答案解析 |
+| 考核管理 | 创建配置 | 时长、及格线、组卷策略 |
+| 考核管理 | 组卷方式 | 随机抽题/按分类比例 |
+| 考核管理 | 重新组卷 | 按配置重新生成 |
+| 在线考试 | 正式考试 | 计时、切屏检测、自动提交 |
+| 在线考试 | 模拟考试 | 同正式考试，不计入成绩 |
+| 在线考试 | 练习模式 | 选完即反馈对错+解析，不限时 |
+| 在线考试 | 答题卡导航 | 已答/未答/当前题跳转 |
+| 成绩管理 | 自动阅卷 | 客观题自动评分 |
+| 成绩管理 | 成绩列表 | 按考核分组 |
+| 成绩管理 | 成绩详情 | 每题得分明细 |
+| 试卷批改 | 逐题批改 | 手动批改 |
+| 用户管理 | 增删改查 | 管理者管理 |
+| 用户管理 | 个人资料 | 姓名/部门/密码修改 |
+| 系统设置 | 通用配置 | 名称/及格线/切屏/时长 |
+| 通知中心 | 系统通知 | 铃铛+未读数+列表 |
+| 操作日志 | 审计记录 | 分页+筛选 |
+
+### 待实现
+
+| 优先级 | 功能 | 说明 |
+|--------|------|------|
+| ★★★ | 补考机制 | 未通过的考生允许重新考试 |
+| ★★ | 每题对比 | 成绩详情页每题显示你的答案 vs 正确答案 |
+| ★ | 导入结果反馈 | 批量导入题库时显示失败的行号和原因 |
+
+## 技术栈
+
+前端: Vue 3 + Vite 8 + Element Plus 2 + ECharts 6
+后端: Python 3.10+ + FastAPI + SQLAlchemy 2.0 + SQLite
+认证: JWT
 
 ## 项目结构
 
-\\\\examination/
-\u251c\u2500\u2500 backend/                  # FastAPI 后端
-\u2502   \u251c\u2500\u2500 main.py               # 应用入口，路由注册
-\u2502   \u251c\u2500\u2500 config.py             # 数据库、JWT 配置
-\u2502   \u251c\u2500\u2500 database.py           # 数据库连接与会话
-\u2502   \u251c\u2500\u2500 models.py             # SQLAlchemy 数据模型
-\u2502   \u251c\u2500\u2500 schemas.py            # Pydantic 数据校验
-\u2502   \u251c\u2500\u2500 seed.py               # 初始化示例数据
-\u2502   \u251c\u2500\u2500 requirements.txt      # Python 依赖
-\u2502   \u2514\u2500\u2500 routers/              # API 路由模块
-\u2502       \u251c\u2500\u2500 auth.py           # 登录注册
-\u2502       \u251c\u2500\u2500 questions.py      # 题库管理
-\u2502       \u251c\u2500\u2500 exams.py          # 考试管理
-\u2502       \u251c\u2500\u2500 answers.py        # 答题提交
-\u2502       \u2514\u2500\u2500 results.py        # 成绩查询
-\u251c\u2500\u2500 src/                      # Vue 3 前端
-\u2502   \u251c\u2500\u2500 main.js               # 应用入口
-\u2502   \u251c\u2500\u2500 App.vue               # 根组件
-\u2502   \u251c\u2500\u2500 api.js                # Axios HTTP 封装
-\u2502   \u251c\u2500\u2500 router/index.js       # 路由配置
-\u2502   \u251c\u2500\u2500 stores/               # Pinia 状态管理
-\u2502   \u251c\u2500\u2500 views/                # 页面视图
-\u2502   \u2502   \u251c\u2500\u2500 Login.vue         # 登录页
-\u2502   \u2502   \u251c\u2500\u2500 Dashboard.vue     # 仪表盘
-\u2502   \u2502   \u251c\u2500\u2500 Questions.vue     # 题库管理
-\u2502   \u2502   \u251c\u2500\u2500 Exams.vue         # 考试列表
-\u2502   \u2502   \u251c\u2500\u2500 ExamDetail.vue    # 考试详情/配置
-\u2502   \u2502   \u251c\u2500\u2500 TakeExam.vue      # 在线答题
-\u2502   \u2502   \u251c\u2500\u2500 Results.vue       # 成绩列表
-\u2502   \u2502   \u2514\u2500\u2500 ResultDetail.vue  # 成绩明细
-\u2502   \u251c\u2500\u2500 components/           # 通用组件
-\u2502   \u2514\u2500\u2500 styles/               # 全局样式
-\u251c\u2500\u2500 index.html                # 入口 HTML
-\u251c\u2500\u2500 vite.config.js            # Vite 配置
-\u2514\u2500\u2500 package.json              # 前端依赖
-\\\\
-## 环境变量
+`
+examination/
+├── backend/                  # FastAPI 后端
+│   ├── main.py               # 应用入口
+│   ├── config.py             # 配置
+│   ├── database.py           # 数据库连接
+│   ├── models.py             # 数据模型
+│   ├── schemas.py            # 数据校验
+│   ├── exam.db               # SQLite 数据库
+│   └── routers/              # API 路由
+│       ├── auth.py / questions.py / exams.py
+│       ├── answers.py / results.py / users.py
+│       ├── dashboard.py / categories.py
+│       ├── settings.py / logs.py / notifications.py
+├── src/                      # Vue 3 前端
+│   ├── main.js / App.vue / api.js
+│   ├── router/index.js
+│   ├── views/                # 13 个页面视图
+│   └── components/AppLayout.vue
+├── index.html
+├── vite.config.js
+├── package.json
+└── README.md
+`
 
-在 \ackend/config.py\ 中可配置：
+## 数据库（8 个业务表）
 
-| 变量 | 说明 | 默认值 |
-|---|---|---|
-| \DATABASE_URL\ | 数据库连接地址 | \sqlite:///./exam.db\ |
-| \SECRET_KEY\ | JWT 签名密钥 | 默认密钥（生产环境请修改） |
-| \ALGORITHM\ | JWT 加密算法 | \HS256\ |
-| \ACCESS_TOKEN_EXPIRE_MINUTES\ | 令牌有效期（分钟） | 80\ |
+| 表名 | 用途 | 关键字段 |
+|------|------|----------|
+| users | 用户 | username, name, role, department |
+| questions | 题目 | type, category, content, options, answer, explanation, score |
+| categories | 分类 | name, sort |
+| exams | 考核 | name, type, duration, question_count, pass_score, strategy |
+| exam_papers | 答卷 | exam_id, user_id, questions, answers, score, status |
+| system_settings | 设置 | key, value |
+| operation_logs | 日志 | username, action, target, detail, ip |
+| notifications | 通知 | title, content, type, is_read |
 
-## 许可证
+## 注意事项
 
-仅供内部使用。
+- 数据库文件 backend/exam.db（非根目录 exam.db）
+- 练习模式选完即反馈，不限时无切屏
+- 管理员用户名不可修改
+- 批量导出 CSV 使用 fetch 直接请求

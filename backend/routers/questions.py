@@ -56,27 +56,63 @@ def import_questions(file: UploadFile = File(...), db = Depends(get_db)):
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
     content = file.file.read()
     questions = []
-    if ext == "xlsx":
-        wb = openpyxl.load_workbook(io.BytesIO(content), read_only=True)
-        ws = wb.active
-        headers = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            if not any(row): continue
-            data = {h: (v or "") for h, v in zip(headers, row)}
-            opts = json.loads(data.get("选项","[]")) if isinstance(data.get("选项"), str) and data.get("选项","").startswith("[") else []
-            q = Question(type=data.get("题型","单选"), category=data.get("分类",""), content=data.get("题目内容",""), options=opts, answer=data.get("答案",""), difficulty=int(data.get("难度",1)), score=int(data.get("分值",2)))
-            db.add(q)
-            questions.append(q)
+    option_keys = ["选项A", "选项B", "选项C", "选项D", "选项E", "选项F", "选项G", "选项H"]
+
+    def _parse_row(data):
+        qtype = data.get("题型", "单选") or "单选"
+        cat = data.get("分类", "") or ""
+        ctt = data.get("题目内容", "") or ""
+        ans = data.get("答案", "") or ""
+        expl = data.get("解析", "") or ""
+        try:
+            diff = int(data.get("难度", 1) or 1)
+        except:
+            diff = 1
+        try:
+            scr = int(data.get("分值", 2) or 2)
+        except:
+            scr = 2
+        opts = []
+        labels = "ABCDEFGH"
+        for i, k in enumerate(option_keys):
+            val = data.get(k, "") or ""
+            if val.strip():
+                opts.append({"label": labels[i], "text": val.strip()})
+        return Question(type=qtype, category=cat, content=ctt, options=opts, answer=ans, explanation=expl, difficulty=diff, score=scr)
+
+    if ext in ("xlsx", "xls"):
+        import openpyxl
+        if ext == "xls":
+            import xlrd
+            xls_wb = xlrd.open_workbook(file_contents=content)
+            xls_ws = xls_wb.sheet_by_index(0)
+            headers = [str(xls_ws.cell_value(0, c)) for c in range(xls_ws.ncols)]
+            for r in range(1, xls_ws.nrows):
+                row_vals = [str(xls_ws.cell_value(r, c)) for c in range(xls_ws.ncols)]
+                if not any(row_vals): continue
+                data = {h: v for h, v in zip(headers, row_vals)}
+                q = _parse_row(data)
+                db.add(q)
+                questions.append(q)
+        else:
+            wb = openpyxl.load_workbook(io.BytesIO(content), read_only=True)
+            ws = wb.active
+            headers = [c.value for c in next(ws.iter_rows(min_row=1, max_row=1))]
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                if not any(row): continue
+                data = {h: (v or "") for h, v in zip(headers, row)}
+                q = _parse_row(data)
+                db.add(q)
+                questions.append(q)
     elif ext == "csv":
         import csv
         reader = csv.DictReader(io.StringIO(content.decode("utf-8-sig")))
         for row in reader:
-            opts = json.loads(row.get("选项","[]")) if row.get("选项","").startswith("[") else []
-            q = Question(type=row.get("题型","单选"), category=row.get("分类",""), content=row.get("题目内容",""), options=opts, answer=row.get("答案",""), difficulty=int(row.get("难度",1)), score=int(row.get("分值",2)))
+            q = _parse_row(row)
             db.add(q)
             questions.append(q)
     else:
-        raise HTTPException(status_code=400, detail="仅支持 .xlsx 和 .csv 格式")
+        raise HTTPException(status_code=400, detail="仅支持 .xlsx/.xls 和 .csv 格式")
     db.commit()
     return {"count": len(questions), "message": f"成功导入 {len(questions)} 道题目"}
 

@@ -2,7 +2,7 @@
   <div class="exams-page">
     <div class="toolbar">
       <div class="toolbar-left">
-        <el-button type="primary" :icon="Plus" @click="showCreate = true">新建考核</el-button>
+        <el-button v-if="userRole === 'admin'" type="primary" :icon="Plus" @click="showCreate = true">新建考核</el-button>
       </div>
       <div class="toolbar-right">
         <el-select v-model="filterStatus" placeholder="状态" clearable size="small" style="width: 120px">
@@ -39,11 +39,11 @@
           </div>
         </div>
         <div class="exam-actions">
-          <el-button text type="primary" size="small" @click="$router.push(`/exams/${exam.id}`)">
+          <el-button v-if="exam.can_manage !== false" text type="primary" size="small" @click="$router.push(`/exams/${exam.id}`)">
             管理 <el-icon><ArrowRight /></el-icon>
           </el-button>
           <el-button
-            v-if="exam.status !== '已结束'"
+            v-if="exam.can_start"
             :type="exam.type === '练习' ? 'success' : 'primary'"
             size="small"
             :plain="exam.type !== '练习'"
@@ -116,6 +116,13 @@ import { api } from "../api.js";
 import { ElMessage } from "element-plus";
 
 const search = ref("");
+const userRole = computed(() => {
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    return u.role || "admin";
+  } catch(e) { return "admin"; }
+});
+
 const filterStatus = ref("");
 const showCreate = ref(false);
 const questionTypes = ref([]);

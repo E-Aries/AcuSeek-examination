@@ -20,12 +20,24 @@ def _ensure_list(val):
 router = APIRouter(prefix="/api/exams", tags=["exams"])
 
 @router.get("")
-def list_exams(status: str = "", search: str = "", db = Depends(get_db)):
+def list_exams(status: str = "", search: str = "", user = Depends(get_current_user), db = Depends(get_db)):
     q = db.query(Exam)
     if status: q = q.filter(Exam.status == status)
     if search: q = q.filter(Exam.name.like(f"%{search}%"))
+
+    # 考生可以看到所有考核，但只能进入进行中的
     items = q.order_by(Exam.id.desc()).all()
-    return {"items": [{"id": e.id, "name": e.name, "type": e.type, "status": e.status, "duration": e.duration, "question_count": e.question_count, "pass_score": e.pass_score, "strategy": e.strategy, "categories": e.categories} for e in items]}
+    result = []
+    for e in items:
+        item = {"id": e.id, "name": e.name, "type": e.type, "status": e.status, "duration": e.duration, "question_count": e.question_count, "pass_score": e.pass_score, "strategy": e.strategy, "categories": e.categories}
+        if user.role != "admin":
+            item["can_start"] = (e.status == "进行中")
+            item["can_manage"] = False
+        else:
+            item["can_start"] = (e.status != "已结束")
+            item["can_manage"] = True
+        result.append(item)
+    return {"items": result}
 
 @router.post("")
 def create_exam(data: ExamCreate, db = Depends(get_db)):
@@ -44,7 +56,10 @@ def get_exam(eid: int, db = Depends(get_db)):
 @router.post("/{eid}/start")
 def start_exam(eid: int, mode: str = "", user = Depends(get_current_user), db = Depends(get_db)):
     existing = db.query(ExamPaper).filter(ExamPaper.exam_id == eid, ExamPaper.user_id == user.id).first()
-    if existing and mode != "practice": return {"paper_id": existing.id, "questions": existing.questions}
+    if existing and existing.status == "已完成":
+        return {"paper_id": existing.id, "questions": existing.questions}
+    if existing and existing.status == "进行中":
+        return {"paper_id": existing.id, "questions": existing.questions}
 
     exam = db.query(Exam).filter(Exam.id == eid).first()
     if not exam: raise HTTPException(status_code=404, detail="考试不存在")
@@ -101,7 +116,7 @@ def get_exam_detail(eid: int, db = Depends(get_db)):
 def get_exam_papers(eid: int, db = Depends(get_db)):
     rows = db.query(ExamPaper, User).join(User, ExamPaper.user_id == User.id).filter(ExamPaper.exam_id == eid).order_by(ExamPaper.submitted_at.desc()).all()
     return {"items": [{
-        "paper_id": r.ExamPaper.id, "name": r.User.name, "department": r.User.department,
+        "paper_id": r.ExamPaper.id, "name": r.User.name, "department": r.User.department, "user_id": r.User.id,
         "score": r.ExamPaper.score, "status": r.ExamPaper.status,
         "duration_used": r.ExamPaper.duration_used, "submitted_at": str(r.ExamPaper.submitted_at or "")
     } for r in rows]}
@@ -164,6 +179,27 @@ def get_paper_detail(pid: int, db = Depends(get_db)):
     if not paper:
         raise HTTPException(status_code=404, detail="试卷不存在")
     return {"paper_id": paper.id, "questions": paper.questions or [], "answers": paper.answers or {}, "score": paper.score, "status": paper.status}
+
+
+@router.post("/{eid}/retake/{uid}")
+def retake_exam(eid: int, uid: int, user = Depends(get_current_user), db = Depends(get_db)):
+    """Admin allows a candidate to retake an exam (reset their paper)"""
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="仅管理员可以操作")
+    exam = db.query(Exam).filter(Exam.id == eid).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="考试不存在")
+    paper = db.query(ExamPaper).filter(ExamPaper.exam_id == eid, ExamPaper.user_id == uid).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="该考生没有参加此考试")
+    paper.status = "未开始"
+    paper.score = None
+    paper.answers = None
+    paper.submitted_at = None
+    paper.duration_used = None
+    db.commit()
+    return {"message": "补考已允许，考生可以重新考试"}
+
 
 @router.delete("/{eid}")
 def delete_exam(eid: int, db = Depends(get_db)):

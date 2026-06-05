@@ -226,7 +226,6 @@ async function handleLogin() {
   background: var(--c-bg);
 }
 
-/* ── Background Effects ── */
 .login-bg {
   position: absolute;
   inset: 0;
@@ -245,35 +244,29 @@ async function handleLogin() {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.15;
 }
 .bg-orb-1 {
-  width: 500px;
-  height: 500px;
-  background: var(--c-primary);
-  top: -150px;
-  right: -100px;
-  animation: orb-float 12s ease-in-out infinite alternate;
-}
-.bg-orb-2 {
   width: 400px;
   height: 400px;
-  background: var(--c-accent);
-  bottom: -100px;
-  left: -100px;
-  animation: orb-float 10s ease-in-out infinite alternate-reverse;
+  background: radial-gradient(circle, var(--c-primary-lighter), transparent);
+  top: -120px;
+  right: -80px;
+  opacity: 0.5;
 }
-@keyframes orb-float {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(40px, 30px) scale(1.1); }
+.bg-orb-2 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--c-accent-bg), transparent);
+  bottom: -60px;
+  left: -60px;
+  opacity: 0.4;
 }
 
-/* ── Container ── */
 .login-container {
   display: flex;
   width: 880px;
-  max-width: 95vw;
-  min-height: 560px;
+  max-width: 92vw;
+  min-height: 520px;
   background: var(--c-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
@@ -282,189 +275,135 @@ async function handleLogin() {
   z-index: 1;
 }
 
-/* ── Brand Panel ── */
+/* Left brand panel */
 .login-brand {
   width: 380px;
   background: linear-gradient(135deg, var(--c-primary-deeper), var(--c-primary-dark));
+  padding: 48px 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 36px;
   position: relative;
   overflow: hidden;
 }
 .login-brand::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 60%);
+  background:
+    radial-gradient(circle at 30% 20%, var(--c-primary-light), transparent 60%),
+    radial-gradient(circle at 80% 80%, var(--c-accent), transparent 50%);
+  opacity: 0.15;
 }
 .brand-content {
   position: relative;
   z-index: 1;
+  text-align: center;
   color: white;
 }
-.brand-icon-large {
-  width: 72px;
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(8px);
-  margin-bottom: 24px;
+.axus-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 20px;
 }
 .brand-title {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: 4px;
-  margin-bottom: 8px;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
 }
 .brand-subtitle {
-  font-size: 15px;
-  opacity: 0.8;
-  margin-bottom: 24px;
-  font-weight: 500;
-}
-.brand-desc {
   font-size: 13px;
   opacity: 0.6;
-  line-height: 1.8;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+.brand-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.8;
+  margin-bottom: 28px;
 }
 .brand-features {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  align-items: center;
 }
 .feature-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  opacity: 0.75;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 0.7;
 }
 .feature-item .el-icon {
-  font-size: 18px;
-  opacity: 0.9;
+  font-size: 16px;
+  color: var(--c-accent-light);
 }
 
-/* ── Form Panel ── */
+/* Right form panel */
 .login-form-panel {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 40px;
 }
 .form-container {
   width: 100%;
   max-width: 340px;
 }
 .form-header {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 .form-title {
   font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--c-text);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .form-subtitle {
-  font-size: 14px;
-  color: var(--c-text-secondary);
-}
-
-.login-form {
-  margin-bottom: 20px;
-}
-.login-input :deep(.el-input__wrapper) {
-  padding: 2px 16px;
-}
-.login-input :deep(.el-input__inner) {
-  height: 48px;
-  font-size: 14px;
-}
-.login-input :deep(.el-input__prefix) {
-  margin-right: 8px;
-}
-.login-input :deep(.el-input__prefix-inner) .el-icon {
-  font-size: 18px;
+  font-size: 13px;
   color: var(--c-text-tertiary);
 }
-
+.login-form .el-form-item {
+  margin-bottom: 20px;
+}
+.login-input.el-input {
+  --el-input-height: 44px;
+}
+.login-input .el-input__wrapper {
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+  transition: all var(--transition-fast);
+}
+.login-input .el-input__wrapper:hover {
+  border-color: var(--c-primary-light);
+}
+.login-input .el-input__wrapper.is-focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-lighter) !important;
+}
+.login-input .el-input__inner {
+  font-size: 14px;
+}
 .form-options {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
+  align-items: center;
+  margin-bottom: 20px;
 }
-.form-options :deep(.el-checkbox__label) {
-  font-size: 13px;
-  color: var(--c-text-secondary);
-}
-
 .login-btn {
   width: 100%;
-  height: 48px;
+  height: 44px;
   font-size: 15px;
-  letter-spacing: 2px;
-  border-radius: var(--radius-sm);
-}
-
-
-.login-footer-content {
-  text-align: center;
-}
-.login-footer-text {
-  font-size: 12px;
-  color: var(--c-text-tertiary);
-  margin: 0 0 6px;
-}
-.login-company-name {
-  font-size: 11px;
-  color: var(--c-text-tertiary);
-  opacity: 0.6;
-  margin: 0;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-/* AXUS logo animation */
-.axus-logo {
-  animation: logo-float 3s ease-in-out infinite;
-}
-@keyframes logo-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-
-@media (max-width: 768px) {
-  .login-container {
-    flex-direction: column;
-    min-height: auto;
-  }
-  .login-brand {
-    width: 100%;
-    padding: 32px 24px;
-    min-height: 200px;
-  }
-  .brand-icon-large {
-    width: 56px;
-    height: 56px;
-    margin-bottom: 16px;
-  }
-  .brand-title {
-    font-size: 28px;
-  }
-  .brand-features {
-    display: none;
-  }
-  .login-form-panel {
-    padding: 32px 24px;
-  }
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  letter-spacing: 1px;
 }
 </style>

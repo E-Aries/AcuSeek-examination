@@ -4,6 +4,7 @@ from sqlalchemy import func
 from fastapi.responses import StreamingResponse
 from database import get_db
 from models import ExamPaper, Exam, User
+from .auth import get_current_user
 
 router = APIRouter(prefix="/api/results", tags=["results"])
 
@@ -54,6 +55,29 @@ def export_results(db = Depends(get_db)):
     for r in rows:
         writer.writerow([r[0].id, r[1].name, r[1].type, r[2].name, r[2].department, r[0].score or "", r[0].status, r[0].duration_used or "", str(r[0].submitted_at or "")])
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=exam_results.csv"})
+
+
+@router.get("/my")
+def my_results(user = Depends(get_current_user), db = Depends(get_db)):
+    papers = db.query(ExamPaper).filter(ExamPaper.user_id == user.id).order_by(ExamPaper.id.desc()).all()
+    items = []
+    for p in papers:
+        exam = db.query(Exam).filter(Exam.id == p.exam_id).first()
+        if not exam: continue
+        total_score = sum(q.get("score", 0) for q in (p.questions or []))
+        items.append({
+            "paper_id": p.id,
+            "exam_id": p.exam_id,
+            "exam_name": exam.name,
+            "exam_type": exam.type,
+            "status": p.status,
+            "score": p.score,
+            "total_score": total_score,
+            "pass_score": exam.pass_score,
+            "duration_used": p.duration_used,
+            "submitted_at": str(p.submitted_at or "")
+        })
+    return {"items": items}
 
 @router.get("/{paper_id}")
 def get_result(paper_id: int, db = Depends(get_db)):

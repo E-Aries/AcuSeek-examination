@@ -203,13 +203,13 @@ async function loadUnreadCount() {
 .layout {
   display: flex;
   min-height: 100vh;
+  background: var(--c-bg);
 }
 
-/* ── Sidebar ── */
+/* 側边栏 - 深色主题 */
 .sidebar {
-  width: 240px;
-  background: var(--c-surface);
-  border-right: 1px solid var(--c-border-light);
+  width: var(--c-sidebar-width);
+  background: var(--c-sidebar-bg);
   display: flex;
   flex-direction: column;
   transition: width var(--transition-base);
@@ -218,95 +218,107 @@ async function loadUnreadCount() {
   left: 0;
   height: 100vh;
   z-index: 100;
+  overflow: hidden;
 }
 .sidebar.collapsed {
-  width: 64px;
+  width: var(--c-sidebar-collapsed);
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--c-border-light);
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--c-sidebar-border);
+  min-height: 64px;
 }
 .sidebar.collapsed .sidebar-brand {
-  padding: 24px 14px;
+  padding: 20px 12px;
   justify-content: center;
 }
 .brand-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
+  background: linear-gradient(135deg, var(--c-primary-light), var(--c-primary));
   border-radius: var(--radius-md);
   color: white;
   flex-shrink: 0;
 }
 .brand-text {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--c-text);
-  letter-spacing: 2px;
+  color: white;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
 }
 
 .sidebar-menu {
   flex: 1;
-  padding: 12px 8px;
+  padding: 8px 8px;
   border: none !important;
+  background: transparent !important;
 }
 .sidebar-menu .el-menu-item {
   border-radius: var(--radius-sm);
   margin: 2px 0;
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 14px;
-  height: 42px;
-  line-height: 42px;
+  font-size: 13px;
+  height: 38px;
+  line-height: 38px;
+  color: var(--c-sidebar-text) !important;
+  background: transparent !important;
+  letter-spacing: 0.01em;
 }
 .sidebar-menu .el-menu-item:hover {
-  background: var(--c-primary-lighter);
+  background: var(--c-sidebar-hover) !important;
+  color: var(--c-sidebar-active) !important;
 }
 .sidebar-menu .el-menu-item.is-active {
-  background: var(--c-primary-lighter);
-  color: var(--c-primary) !important;
+  background: var(--c-primary) !important;
+  color: var(--c-sidebar-active) !important;
   font-weight: 600;
 }
 .sidebar-menu .el-menu-item .el-icon {
-  font-size: 18px;
+  font-size: 17px;
+  margin-right: 8px;
 }
 
 .sidebar-footer {
   padding: 12px;
-  border-top: 1px solid var(--c-border-light);
+  border-top: 1px solid var(--c-sidebar-border);
   display: flex;
   justify-content: center;
 }
 .collapse-btn {
-  color: var(--c-text-tertiary);
-  font-size: 18px;
+  color: var(--c-sidebar-text);
+  font-size: 16px;
+  background: transparent !important;
+  border: none !important;
 }
 .collapse-btn:hover {
-  color: var(--c-text-secondary);
+  color: var(--c-sidebar-active);
+  background: var(--c-sidebar-hover) !important;
 }
 
-/* ── Main Area ── */
+/* 主区域 */
 .main-area {
   flex: 1;
-  margin-left: 240px;
+  margin-left: var(--c-sidebar-width);
   transition: margin-left var(--transition-base);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 .main-area.expanded {
-  margin-left: 64px;
+  margin-left: var(--c-sidebar-collapsed);
 }
 
-/* ── Top Bar ── */
+/* 顶栏 - 简洁白底 */
 .topbar {
   position: sticky;
   top: 0;
@@ -314,55 +326,58 @@ async function loadUnreadCount() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
-  background: rgba(246, 245, 243, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 0 28px;
+  height: 60px;
+  background: var(--c-surface);
   border-bottom: 1px solid var(--c-border-light);
 }
 .page-title {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--c-text);
+  font-family: var(--font-display);
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 .topbar-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-sm);
   color: var(--c-text-secondary);
-}
-.topbar-btn:hover {
-  background: var(--c-primary-lighter);
-  color: var(--c-primary);
-}
-.bell-badge {
+  background: transparent !important;
+  border: none !important;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+.topbar-btn:hover {
+  background: var(--c-surface-hover) !important;
+  color: var(--c-text);
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 12px 4px 4px;
+  gap: 8px;
+  padding: 2px 10px 2px 2px;
   border-radius: 999px;
   cursor: pointer;
   transition: background var(--transition-fast);
+  margin-left: 4px;
 }
 .user-info:hover {
-  background: var(--c-primary-lighter);
+  background: var(--c-surface-hover);
 }
 .user-avatar {
   background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
-  border: 2px solid var(--c-primary-lighter);
+  border: none;
   font-family: var(--font-body);
   font-weight: 600;
+  font-size: 12px;
 }
 .user-name {
   font-family: var(--font-body);
@@ -375,49 +390,39 @@ async function loadUnreadCount() {
   color: var(--c-text-tertiary);
 }
 
-/* ── Content ── */
+/* 内容区 */
 .content {
   flex: 1;
-  padding: 24px 32px 32px;
+  padding: 24px 28px 32px;
 }
 
-/* ── Transitions ── */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all var(--transition-base);
-}
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-8px);
-}
-
+/* 页面过渡 */
 .page-fade-enter-active,
 .page-fade-leave-active {
   transition: all var(--transition-base);
 }
 .page-fade-enter-from {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(6px);
 }
 .page-fade-leave-to {
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 64px;
+    width: var(--c-sidebar-collapsed);
   }
   .sidebar .brand-text,
   .sidebar .el-menu-item span {
     display: none;
   }
   .main-area {
-    margin-left: 64px;
+    margin-left: var(--c-sidebar-collapsed);
   }
   .topbar {
-    padding: 12px 16px;
+    padding: 0 16px;
   }
   .content {
     padding: 16px;

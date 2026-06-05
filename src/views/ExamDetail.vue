@@ -122,6 +122,7 @@
               <template #default="{ row }">
                 <el-button v-if="row.status === '待批改'" text type="warning" size="small" @click="openGradeDialog(row)">批改</el-button>
                 <el-button v-else-if="row.status === '已完成'" text type="primary" size="small" @click="$router.push('/results/' + row.paper_id)">详情</el-button>
+                <el-button v-if="row.status === '已完成' && (row.score < (exam.pass_score || 60))" text type="danger" size="small" @click="handleRetake(row)">补考</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -310,6 +311,15 @@ async function generatePaper() {
   } finally {
     generating.value = false;
   }
+}
+
+async function handleRetake(row) {
+  try {
+    await ElMessageBox.confirm("确定允许 " + row.name + " 补考？该考生的成绩记录将被清除。", "确认补考");
+    await api.exams.retake(route.params.id, row.user_id);
+    ElMessage.success("已允许补考，考生可以重新考试");
+    await loadCandidates();
+  } catch(e) { if (e !== "cancel") ElMessage.error("操作失败"); }
 }
 
 async function loadPaper() {

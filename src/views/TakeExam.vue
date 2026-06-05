@@ -118,7 +118,7 @@
         <div class="q-nav">
           <el-button :disabled="currentIndex === 0" @click="prevQuestion" :icon="ArrowLeft">上一题</el-button>
           <el-button v-if="currentIndex < questions.length - 1" type="primary" @click="nextQuestion">下一题 <el-icon><ArrowRight /></el-icon></el-button>
-          <el-button v-else type="success" @click="practiceMode ? router.push('/exams') : confirmSubmit">{{ practiceMode ? '完成练习' : '完成作答' }}</el-button>
+          <el-button v-else type="success" @click="practiceMode ? router.push('/exams') : (showSubmitConfirm = true)">{{ practiceMode ? '完成练习' : '完成作答' }}</el-button>
         </div>
       </div>
 
@@ -412,7 +412,11 @@ async function confirmSubmit() {
     submitted.value = true;
     questionDetail.value = res.detail || {};
     showResult.value = true;
-  } catch(e) { ElMessage.error("交卷失败"); }
+  } catch(e) {
+    const msg = e?.response?.data?.detail || e?.message || "交卷失败";
+    ElMessage.error("交卷失败: " + msg);
+    console.error("Submit error:", e);
+  }
 }
 
 function isOptionCorrect(label) {
