@@ -45,3 +45,9 @@ exam.db
 start.bat
 start_vite.vbs
 
+
+# Debug / temp
+_debug.py
+backend/_fix_dup.py
+backend/routers/_profile_schema.py
+examination_backup_*/

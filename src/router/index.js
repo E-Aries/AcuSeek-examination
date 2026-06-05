@@ -1,10 +1,16 @@
-﻿import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
   {
     path: "/login",
     name: "Login",
     component: () => import("../views/Login.vue"),
+    meta: { layout: "blank" },
+  },
+  {
+    path: "/exams/:id/take",
+    name: "TakeExam",
+    component: () => import("../views/TakeExam.vue"),
     meta: { layout: "blank" },
   },
   {
@@ -24,6 +30,12 @@ const routes = [
         meta: { requiresAdmin: true },
       },
       {
+        path: "categories",
+        name: "Categories",
+        component: () => import("../views/Categories.vue"),
+        meta: { requiresAdmin: true },
+      },
+      {
         path: "exams",
         name: "Exams",
         component: () => import("../views/Exams.vue"),
@@ -33,11 +45,6 @@ const routes = [
         name: "ExamDetail",
         component: () => import("../views/ExamDetail.vue"),
         meta: { requiresAdmin: true },
-      },
-      {
-        path: "exams/:id/take",
-        name: "TakeExam",
-        component: () => import("../views/TakeExam.vue"),
       },
       {
         path: "results",
@@ -50,15 +57,43 @@ const routes = [
         component: () => import("../views/ResultDetail.vue"),
       },
       {
-        path: "categories",
-        name: "Categories",
-        component: () => import("../views/Categories.vue"),
-        meta: { requiresAdmin: true },
-      },
-      {
         path: "users",
         name: "Users",
         component: () => import("../views/Users.vue"),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: "profile",
+        name: "Profile",
+        component: () => import("../views/Profile.vue"),
+      },
+      {
+        path: "settings",
+        name: "Settings",
+        component: () => import("../views/Settings.vue"),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: "logs",
+        name: "Logs",
+        component: () => import("../views/Logs.vue"),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: "profile",
+        name: "Profile",
+        component: () => import("../views/Profile.vue"),
+      },
+      {
+        path: "settings",
+        name: "Settings",
+        component: () => import("../views/Settings.vue"),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: "logs",
+        name: "Logs",
+        component: () => import("../views/Logs.vue"),
         meta: { requiresAdmin: true },
       },
     ],
@@ -78,7 +113,6 @@ router.beforeEach((to) => {
   if (to.name === "Login" && token) {
     return { name: "Dashboard" };
   }
-  // Role guard: admin-only pages
   if (to.meta?.requiresAdmin) {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");

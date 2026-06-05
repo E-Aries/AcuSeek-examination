@@ -22,6 +22,8 @@ export const api = {
   auth: {
     login: (username, password) => request("/auth/login", { method: "POST", body: JSON.stringify({ username, password }) }),
     me: () => request("/auth/me"),
+    profile: (data) => request("/auth/profile", { method: "PUT", body: JSON.stringify(data) }),
+    profile: (data) => request("/auth/profile", { method: "PUT", body: JSON.stringify(data) }),
   },
   questions: {
     list: (params = {}) => request("/questions?" + new URLSearchParams(params)),
@@ -49,16 +51,43 @@ export const api = {
     get: (id) => request(`/exams/${id}`),
     detail: (id) => request(`/exams/${id}/detail`),
     papers: (id) => request(`/exams/${id}/papers`),
-    start: (id) => request(`/exams/${id}/start`, { method: "POST" }),
+    start: (id, mode) => request(`/exams/${id}/start` + (mode ? `?mode=${mode}` : ""), { method: "POST" }),
     updateStatus: (id, status) => request(`/exams/${id}/status?status=${status}`, { method: "PUT" }),
     update: (id, data) => request(`/exams/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     delete: (id) => request(`/exams/${id}`, { method: "DELETE" }),
     generate: (id) => request(`/exams/${id}/generate`, { method: "POST" }),
     questions: (id) => request(`/exams/${id}/questions`),
+    paper: (pid) => request(`/exams/paper/${pid}`),
   },
   answers: {
     submit: (paperId, data) => request(`/answers/submit/${paperId}`, { method: "POST", body: JSON.stringify(data) }),
     grade: (paperId, data) => request(`/answers/grade/${paperId}`, { method: "PUT", body: JSON.stringify(data) }),
+  },
+    settings: {
+    get: () => request("/settings"),
+    update: (data) => request("/settings", { method: "PUT", body: JSON.stringify(data) }),
+  },
+  logs: {
+    list: (params = {}) => request("/logs?" + new URLSearchParams(params)),
+    actions: () => request("/logs/actions"),
+  },
+  notifications: {
+    list: () => request("/notifications"),
+    unread: () => request("/notifications/unread"),
+    markRead: (id) => request("/notifications/" + id + "/read", { method: "PUT" }),
+  },
+  settings: {
+    get: () => request("/settings"),
+    update: (data) => request("/settings", { method: "PUT", body: JSON.stringify(data) }),
+  },
+  logs: {
+    list: (params = {}) => request("/logs?" + new URLSearchParams(params)),
+    actions: () => request("/logs/actions"),
+  },
+  notifications: {
+    list: () => request("/notifications"),
+    unread: () => request("/notifications/unread"),
+    markRead: (id) => request("/notifications/" + id + "/read", { method: "PUT" }),
   },
   results: {
     list: () => request("/results"),

@@ -56,6 +56,14 @@
           <el-icon><User /></el-icon>
           <template #title>用户管理</template>
         </el-menu-item>
+        <el-menu-item v-if="userRole === 'admin'" index="/logs">
+          <el-icon><List /></el-icon>
+          <template #title>操作日志</template>
+        </el-menu-item>
+        <el-menu-item v-if="userRole === 'admin'" index="/settings">
+          <el-icon><Setting /></el-icon>
+          <template #title>系统设置</template>
+        </el-menu-item>
       </el-menu>
 
       <div class="sidebar-footer">
@@ -79,8 +87,8 @@
         </div>
         <div class="topbar-right">
           <el-tooltip content="通知" placement="bottom">
-            <el-button :icon="Bell" text class="topbar-btn" @click="handleBell">
-              <el-badge :value="3" :hidden="false" class="bell-badge">
+            <el-button text class="topbar-btn" @click="handleBell">
+              <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="bell-badge">
                 <Bell style="width: 20px; height: 20px" />
               </el-badge>
             </el-button>
@@ -95,9 +103,6 @@
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">
                   <el-icon><User /></el-icon>个人资料
-                </el-dropdown-item>
-                <el-dropdown-item command="settings">
-                  <el-icon><Setting /></el-icon>系统设置
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>退出登录
@@ -127,6 +132,7 @@ import { Bell, ArrowDown, Fold, Expand } from "@element-plus/icons-vue";
 
 const route = useRoute();
 const router = useRouter();
+const unreadCount = ref(0);
 const sidebarCollapsed = ref(false);
 
 const userRole = computed(() => {
@@ -163,15 +169,33 @@ const activeRoute = computed(() => {
   return "/dashboard";
 });
 
-function handleBell() {
-  // Placeholder for notifications
+async function handleBell() {
+  try {
+    const res = await api.notifications.list();
+    if (res.items && res.items.length > 0) {
+      const msgs = res.items.map(n => n.title + ": " + n.content).join("\n");
+      ElMessageBox.alert(msgs, "通知", { confirmButtonText: "知道了" });
+    } else {
+      ElMessage.info("暂无通知");
+    }
+  } catch(e) {
+    ElMessage.error("获取通知失败");
+  }
 }
 
 function handleUserCommand(cmd) {
   if (cmd === "logout") {
     localStorage.removeItem("token");
     router.push({ name: "Login" });
+  } else if (cmd === "profile") {
+    router.push({ name: "Profile" });
   }
+}
+async function loadUnreadCount() {
+  try {
+    const res = await api.notifications.unread();
+    unreadCount.value = res.count || 0;
+  } catch(e) {}
 }
 </script>
 

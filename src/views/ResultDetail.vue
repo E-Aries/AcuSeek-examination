@@ -1,4 +1,6 @@
 <template>
+  <div v-if="loading" class="loading-state"><el-icon class="is-loading" :size="32"><Loading /></el-icon><p>加载中...</p></div>
+  <template v-else>
   <div class="result-detail">
     <!-- Back navigation -->
     <div class="detail-nav">
@@ -134,15 +136,17 @@
       </div>
     </div>
   </div>
+  </template>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { ArrowLeft, CircleCheck, CloseBold, WarningFilled, User, Clock, Calendar } from "@element-plus/icons-vue";
+import { ArrowLeft, CircleCheck, CloseBold, WarningFilled, User, Clock, Calendar, Loading } from "@element-plus/icons-vue";
 import VChart from "vue-echarts";
 import "echarts";
 import { api } from "../api.js";
+import { ElMessage } from "element-plus";
 
 const route = useRoute();
 
@@ -151,6 +155,8 @@ const questions = ref([]);
 const categories = ref([]);
 const distributionData = ref([]);
 const totalPapers = ref(0);
+
+const loading = ref(true);
 
 const CATEGORY_COLORS = ["var(--c-primary)", "var(--c-info)", "var(--c-warning)", "var(--c-primary-light)", "var(--c-success)", "var(--c-danger)"];
 
@@ -171,7 +177,7 @@ function checkAnswer(paperQ, userAns, fullQ) {
   return false;
 }
 
-onMounted(async () => {
+onMounted(async () => { loading.value = true;
   try {
     const res = await api.results.get(route.params.id);
     if (res.error) { return; }
@@ -265,7 +271,7 @@ onMounted(async () => {
       duration: Math.floor((res.duration_used || 0) / 60) + " 分钟",
       date: res.submitted_at ? res.submitted_at.slice(0, 16) : ""
     };
-  } catch(e) { console.error(e); }
+  loading.value = false; } catch(e) { console.error(e); ElMessage.error("加载成绩失败"); loading.value = false; }
 });
 
 const distributionOption = computed(() => {
@@ -519,12 +525,34 @@ const distributionOption = computed(() => {
   font-size: 11px;
   color: var(--c-text-tertiary);
 }
+.review-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.review-user-ans { color: var(--c-text-secondary); }
+.review-user-ans.wrong { color: var(--c-danger); text-decoration: line-through; }
+.review-correct-ans { color: var(--c-success); font-weight: 500; }
 .review-score {
   font-size: 13px;
   font-weight: 700;
   color: var(--c-success);
 }
-.review-item.wrong .review-score { color: var(--c-danger); }
+.review-item.wrong .review-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.review-user-ans { color: var(--c-text-secondary); }
+.review-user-ans.wrong { color: var(--c-danger); text-decoration: line-through; }
+.review-correct-ans { color: var(--c-success); font-weight: 500; }
+.review-score { color: var(--c-danger); }
 
 /* Chart */
 .chart-card {
@@ -537,6 +565,10 @@ const distributionOption = computed(() => {
 .chart-card-header { margin-bottom: 16px; }
 .chart-body { height: 260px; }
 .chart { width: 100%; height: 100%; }
+
+.loading-state { text-align: center; padding: 80px 0; color: var(--c-text-tertiary); }
+.loading-state .el-icon { margin-bottom: 12px; }
+.loading-state p { font-size: 14px; }
 
 @media (max-width: 768px) {
   .score-hero-content {

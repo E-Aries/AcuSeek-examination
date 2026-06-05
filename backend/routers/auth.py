@@ -58,7 +58,43 @@ def login(req: LoginRequest, db = Depends(get_db)):
 
 @router.get("/me")
 def get_me(user = Depends(get_current_user)):
-    return {"id": user.id, "name": user.name, "role": user.role, "department": user.department}
+    return {"id": user.id, "username": user.username, "name": user.name, "role": user.role, "department": user.department}
+
+
+import hashlib, secrets
+from schemas import LoginRequest, TokenResponse
+from pydantic import BaseModel
+from typing import Optional
+
+
+class ProfileUpdate(BaseModel):
+    username: Optional[str] = None
+    name: Optional[str] = None
+    department: Optional[str] = None
+    password: Optional[str] = None
+
+
+@router.put("/profile")
+def update_profile(data: ProfileUpdate, user=Depends(get_current_user), db=Depends(get_db)):
+    if data.username is not None:
+        if user.role == "admin":
+            pass
+        else:
+            existing = db.query(User).filter(User.username == data.username, User.id != user.id).first()
+            if existing:
+                raise HTTPException(status_code=400, detail=f"用户名 '{data.username}' 已被其他用户使用")
+            user.username = data.username
+    if data.name is not None:
+        user.name = data.name
+    if data.department is not None:
+        user.department = data.department
+    if data.password:
+        salt = secrets.token_hex(16)
+        h = hashlib.sha256((salt + data.password).encode()).hexdigest()
+        user.password_hash = salt + ":" + h
+    db.commit()
+    return {"message": "保存成功"}
+
 
 @router.post("/register")
 def register(req: LoginRequest, db = Depends(get_db)):

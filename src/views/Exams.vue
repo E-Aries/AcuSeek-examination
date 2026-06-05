@@ -44,12 +44,12 @@
           </el-button>
           <el-button
             v-if="exam.status !== '已结束'"
-            type="primary"
+            :type="exam.type === '练习' ? 'success' : 'primary'"
             size="small"
-            plain
-            @click="$router.push(`/exams/${exam.id}/take`)"
+            :plain="exam.type !== '练习'"
+            @click="$router.push(`/exams/${exam.id}/take` + (exam.type === '练习' ? '?mode=practice' : ''))"
           >
-            <el-icon :size="14"><CaretRight /></el-icon> 开始考试
+            <el-icon :size="14"><CaretRight /></el-icon> {{ exam.type === '练习' ? '练习模式' : '开始考试' }}
           </el-button>
         </div>
       </div>
@@ -111,7 +111,7 @@
 <script setup>
 
 import { ref, reactive, computed, onMounted, watch } from "vue";
-import { Plus, Search, Clock, Document, UserFilled, ArrowRight, CaretRight } from "@element-plus/icons-vue";
+import { Plus, Search, Clock, Document, UserFilled, ArrowRight, CaretRight , EditPen } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage } from "element-plus";
 

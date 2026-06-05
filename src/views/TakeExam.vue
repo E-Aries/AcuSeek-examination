@@ -4,8 +4,6 @@
     <header class="exam-topbar">
       <div class="exam-topbar-left">
         <div class="exam-breadcrumb">
-          <el-button text size="small" @click="handleQuit">退出考试</el-button>
-          <el-icon><ArrowRight /></el-icon>
           <span class="exam-breadcrumb-name">{{ examName }}</span>
         </div>
       </div>
@@ -16,12 +14,13 @@
         </div>
       </div>
       <div class="exam-topbar-right">
-        <div class="timer" :class="{ warning: remaining < 300 }">
+        <div v-if="!practiceMode" class="timer" :class="{ warning: remaining < 300 }">
           <el-icon><Timer /></el-icon>
           <span>{{ formattedTime }}</span>
         </div>
         <div class="exam-name-tag">{{ examName }}</div>
-        <el-button type="primary" size="small" @click="handleSubmit">交卷</el-button>
+        <el-button v-if="!practiceMode" type="primary" size="small" @click="showSubmitConfirm = true">交卷</el-button>
+          <el-button v-else type="success" size="small" @click="router.push('/exams')">完成练习</el-button>
       </div>
     </header>
 
@@ -44,7 +43,7 @@
                 v-for="(opt, i) in currentQuestion.options"
                 :key="i"
                 class="q-option"
-                :class="{ selected: answers[currentIndex] === opt.label, correct: submitted && isOptionCorrect(opt.label), wrong: submitted && isOptionWrong(opt.label) }"
+                :class="{ selected: answers[currentIndex] === opt.label, correct: (submitted || isPracticeCorrect(opt.label)), wrong: (submitted || isPracticeWrong(opt.label)), locked: answeredLocked[currentIndex] }"
                 @click="selectOption(opt.label)"
               >
                 <div class="q-option-marker">
@@ -62,7 +61,7 @@
                 v-for="(opt, i) in currentQuestion.options"
                 :key="i"
                 class="q-option"
-                :class="{ selected: multiSelected.includes(opt.label), correct: submitted && isOptionCorrect(opt.label), wrong: submitted && isOptionWrong(opt.label) }"
+                :class="{ selected: multiSelected.includes(opt.label), correct: (submitted || isPracticeCorrect(opt.label)), wrong: (submitted || isPracticeWrong(opt.label)), locked: answeredLocked[currentIndex] }"
                 @click="toggleMulti(opt.label)"
               >
                 <div class="q-option-marker multi">
@@ -94,6 +93,24 @@
                 @input="updateAnswer"
               />
             </div>
+
+            <!-- Practice mode feedback -->
+            <div v-if="practiceMode && currentFeedback" class="practice-feedback">
+              <div class="pf-header" :class="currentFeedback.correct ? 'correct' : 'wrong'">
+                <el-icon :size="20">
+                  <component :is="currentFeedback.correct ? CircleCheckFilled : CircleCloseFilled" />
+                </el-icon>
+                <span>{{ currentFeedback.correct ? '回答正确' : '回答错误' }}</span>
+              </div>
+              <div class="pf-answer">
+                <span class="pf-label">正确答案：</span>
+                <span class="pf-value">{{ formatPracticeAnswer(currentFeedback.correctAnswer) }}</span>
+              </div>
+              <div v-if="currentFeedback.explanation" class="pf-explanation">
+                <span class="pf-label">解析：</span>
+                <span class="pf-value">{{ currentFeedback.explanation }}</span>
+              </div>
+            </div>
           </div>
         </transition>
 
@@ -101,13 +118,13 @@
         <div class="q-nav">
           <el-button :disabled="currentIndex === 0" @click="prevQuestion" :icon="ArrowLeft">上一题</el-button>
           <el-button v-if="currentIndex < questions.length - 1" type="primary" @click="nextQuestion">下一题 <el-icon><ArrowRight /></el-icon></el-button>
-          <el-button v-else type="success" @click="handleSubmit">完成作答</el-button>
+          <el-button v-else type="success" @click="practiceMode ? router.push('/exams') : confirmSubmit">{{ practiceMode ? '完成练习' : '完成作答' }}</el-button>
         </div>
       </div>
 
       <!-- Question navigator sidebar -->
       <aside class="question-navigator">
-        <h4 class="nav-title">答题卡</h4>
+        <h4 class="nav-title">{{ practiceMode ? '练习模式' : '答题卡' }}</h4>
         <div class="nav-grid">
           <div
             v-for="(q, i) in questions"
@@ -131,6 +148,9 @@
         <div class="nav-summary">
           已答 <strong>{{ answeredCount }}</strong> / {{ questions.length }} 题
         </div>
+        <el-button v-if="nextUnanswered > 0" size="small" type="primary" plain @click="goToNextUnanswered" style="width:100%;margin-top:8px">
+          跳至下一道未答（第 {{ unansweredIndex + 1 }} 题）
+        </el-button>
       </aside>
     </div>
 
@@ -185,7 +205,7 @@
 
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeft, ArrowRight, Timer, Check } from "@element-plus/icons-vue";
+import { ArrowLeft, ArrowRight, Timer, Check, CircleCheckFilled, CircleCloseFilled } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage } from "element-plus";
 
@@ -203,12 +223,68 @@ const paperId = ref(null);
 const remaining = ref(0);
 const totalSeconds = ref(3600);
 const showResult = ref(false);
+const switchCount = ref(0);
+const maxSwitches = 3;
 const resultData = ref({ score: 0, maxScore: 0, correctCount: 0, totalQuestions: 0, status: "", passed: false });
 const submitted = ref(false);
+const practiceMode = ref(false);
+const practiceFeedback = ref({});
+const answeredLocked = ref({});
 const questionDetail = ref({});
 let timer = null;
 
+function saveState() {
+  try {
+    sessionStorage.setItem("exam_" + route.params.id, JSON.stringify({
+      paperId: paperId.value,
+      questions: questions.value,
+      answers: answers.value,
+      remaining: remaining.value,
+      totalSeconds: totalSeconds.value,
+      currentIndex: currentIndex.value,
+      examName: examName.value,
+      switchCount: switchCount.value
+    }));
+  } catch(e) {}
+}
+
+function restoreState() {
+  try {
+    const saved = sessionStorage.getItem("exam_" + route.params.id);
+    if (!saved) return false;
+    const state = JSON.parse(saved);
+    paperId.value = state.paperId;
+    questions.value = state.questions || [];
+    answers.value = state.answers || {};
+    remaining.value = state.remaining || 0;
+    totalSeconds.value = state.totalSeconds || 0;
+    currentIndex.value = state.currentIndex || 0;
+    examName.value = state.examName || "考试进行中";
+    switchCount.value = state.switchCount || 0;
+    return true;
+  } catch(e) { return false; }
+}
+
 onMounted(async () => {
+  practiceMode.value = route.query.mode === "practice";
+  if (practiceMode.value) {
+    try {
+      const [res, examRes] = await Promise.all([
+        api.exams.start(route.params.id, "practice"),
+        api.exams.get(route.params.id)
+      ]);
+      paperId.value = res.paper_id;
+      questions.value = res.questions || [];
+      examName.value = (examRes.name || "").replace("考试", "").replace("考核", "") + "（练习模式）";
+      saveState();
+    } catch(e) { ElMessage.error("加载失败"); }
+    return;
+  }
+  if (restoreState()) {
+    timer = setInterval(() => { if (remaining.value > 0) { remaining.value--; saveState(); } else { clearInterval(timer); confirmSubmit(); } }, 1000);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return;
+  }
   try {
     const [res, examRes] = await Promise.all([
       api.exams.start(route.params.id),
@@ -219,16 +295,29 @@ onMounted(async () => {
     examName.value = examRes.name || "考试进行中";
     remaining.value = (examRes.duration || 60) * 60;
     totalSeconds.value = remaining.value;
-    timer = setInterval(() => { if (remaining.value > 0) remaining.value--; else { clearInterval(timer); confirmSubmit(); } }, 1000);
+    saveState();
+    timer = setInterval(() => { if (remaining.value > 0) { remaining.value--; saveState(); } else { clearInterval(timer); confirmSubmit(); } }, 1000);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
   } catch(e) { ElMessage.error("加载失败"); }
 });
 
-onUnmounted(() => { clearInterval(timer); });
+onUnmounted(() => { clearInterval(timer); document.removeEventListener("visibilitychange", handleVisibilityChange); });
 
 const currentQuestion = computed(() => questions.value[currentIndex.value] || {});
 const qTypeTag = computed(() => ({ "单选": "", "多选": "success", "判断": "warning", "填空": "info", "简答": "danger" }[currentQuestion.value.type] || ""));
 const progressPercent = computed(() => ((currentIndex.value + 1) / questions.value.length) * 100);
 const answeredCount = computed(() => questions.value.filter((_, i) => isAnswered(i)).length);
+const unansweredCount = computed(() => questions.value.length - answeredCount.value);
+const unansweredIndex = computed(() => {
+  for (let i = currentIndex.value + 1; i < questions.value.length; i++) {
+    if (!isAnswered(i)) return i;
+  }
+  for (let i = 0; i < currentIndex.value; i++) {
+    if (!isAnswered(i)) return i;
+  }
+  return -1;
+});
+const nextUnanswered = computed(() => unansweredIndex.value >= 0 ? unansweredIndex.value + 1 : 0);
 const formattedTime = computed(() => { const m = Math.floor(remaining.value / 60); const s = remaining.value % 60; return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0"); });
 
 function isAnswered(i) {
@@ -240,12 +329,34 @@ function isAnswered(i) {
   return !!ans;
 }
 
-function selectOption(value) { answers.value[currentIndex.value] = value; }
+function selectOption(value) {
+  answers.value[currentIndex.value] = value;
+  if (practiceMode.value) {
+    const q = currentQuestion.value;
+    if (!q.id) return;
+    const correct = value === q.answer;
+    const qid = String(q.id);
+    practiceFeedback.value[qid] = { correct, correctAnswer: q.answer, userAnswer: value, explanation: q.explanation || "" };
+    answeredLocked.value[currentIndex.value] = true;
+  }
+}
 function toggleMulti(value) {
   const arr = answers.value[currentIndex.value] || [];
   const newArr = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
   answers.value[currentIndex.value] = newArr;
   multiSelected.value = newArr;
+  if (practiceMode.value) {
+    const q = currentQuestion.value;
+    if (!q.id) return;
+    const correctAnswer = q.answer;
+    const ca = Array.isArray(correctAnswer) ? correctAnswer : (correctAnswer || "").startsWith("[") ? JSON.parse(correctAnswer) : [correctAnswer];
+    const sortedCorrect = [...ca].sort().join(",");
+    const sortedUser = [...newArr].sort().join(",");
+    const correct = sortedUser === sortedCorrect;
+    const qid = String(q.id);
+    practiceFeedback.value[qid] = { correct, correctAnswer, userAnswer: newArr, explanation: q.explanation || "" };
+    answeredLocked.value[currentIndex.value] = true;
+  }
 }
 
 function updateAnswer() {
@@ -265,17 +376,21 @@ function loadCurrentAnswer() {
   else if (q.type === "简答") essayAnswer.value = answers.value[currentIndex.value] || "";
   else multiSelected.value = [];
 }
-function goToQuestion(i) { saveCurrentAnswer(); currentIndex.value = i; loadCurrentAnswer(); }
-function prevQuestion() { saveCurrentAnswer(); if (currentIndex.value > 0) currentIndex.value--; loadCurrentAnswer(); }
-function nextQuestion() { saveCurrentAnswer(); if (currentIndex.value < questions.value.length - 1) currentIndex.value++; loadCurrentAnswer(); }
+function goToNextUnanswered() {
+  const idx = unansweredIndex.value;
+  if (idx >= 0) goToQuestion(idx);
+}
+function goToQuestion(i) { saveCurrentAnswer(); currentIndex.value = i; loadCurrentAnswer(); saveState(); }
+function prevQuestion() { saveCurrentAnswer(); if (currentIndex.value > 0) currentIndex.value--; loadCurrentAnswer(); saveState(); }
+function nextQuestion() { saveCurrentAnswer(); if (currentIndex.value < questions.value.length - 1) currentIndex.value++; loadCurrentAnswer(); saveState(); }
 function handleSubmit() { showSubmitConfirm.value = true; }
 
 async function confirmSubmit() {
   clearInterval(timer);
+  sessionStorage.removeItem("exam_" + route.params.id);
   try {
     const res = await api.answers.submit(paperId.value, { questions: questions.value, answers: Object.fromEntries(Object.entries(answers.value).map(([k, v]) => [String(questions.value[k]?.id), v])), duration_used: totalSeconds.value - remaining.value });
     showSubmitConfirm.value = false;
-    // Calculate detailed results
     const qs = questions.value;
     let correctCount = 0;
     let maxScore = 0;
@@ -327,7 +442,62 @@ function isOptionWrong(label) {
   return false;
 }
 
-function handleQuit() { router.push("/exams"); }
+function isPracticeCorrect(label) {
+  if (!practiceMode.value) return false;
+  const q = currentQuestion.value;
+  if (!q.id) return false;
+  const fb = practiceFeedback.value[String(q.id)];
+  if (!fb) return false;
+  if (q.type === "多选") {
+    const ca = Array.isArray(fb.correctAnswer) ? fb.correctAnswer : (fb.correctAnswer || "").startsWith("[") ? JSON.parse(fb.correctAnswer) : [fb.correctAnswer];
+    return ca.includes(label);
+  }
+  return fb.correctAnswer === label;
+}
+function isPracticeWrong(label) {
+  if (!practiceMode.value) return false;
+  const q = currentQuestion.value;
+  if (!q.id) return false;
+  const fb = practiceFeedback.value[String(q.id)];
+  if (!fb) return false;
+  if (fb.correct) return false;
+  if (q.type === "多选") return (fb.userAnswer || []).includes(label);
+  return fb.userAnswer === label;
+}
+const currentFeedback = computed(() => {
+  if (!practiceMode.value) return null;
+  const q = currentQuestion.value;
+  if (!q.id) return null;
+  return practiceFeedback.value[String(q.id)] || null;
+});
+function formatPracticeAnswer(answer) {
+  if (!answer) return "";
+  if (Array.isArray(answer)) return answer.join("、");
+  return String(answer);
+}
+
+function handleVisibilityChange() {
+  if (document.hidden) {
+    switchCount.value++;
+    saveState();
+    if (switchCount.value >= maxSwitches) {
+      ElMessage.warning("已超过最大切屏次数，系统将自动交卷");
+      confirmSubmit();
+    } else {
+      ElMessage.warning("警告：切屏记录 (" + switchCount.value + "/" + maxSwitches + ")，超过会自动交卷");
+    }
+  }
+}
+
+function handleQuitConfirm() {
+  ElMessageBox.confirm("确定要退出考试吗？未作答的题目将不会保存。", "退出确认", {
+    confirmButtonText: "退出", cancelButtonText: "继续答题", type: "warning"
+  }).then(() => {
+    handleQuit();
+  }).catch(() => {});
+}
+
+function handleQuit() { sessionStorage.removeItem("exam_" + route.params.id); router.push("/exams"); }
 
 </script>>
 
@@ -708,5 +878,36 @@ function handleQuit() { router.push("/exams"); }
     margin-top: 16px;
   }
   .nav-grid { grid-template-columns: repeat(8, 1fr); }
+}
+/* Practice mode feedback */
+.practice-feedback {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--c-border);
+  animation: fadeIn 0.3s ease;
+}
+.practice-feedback .pf-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.practice-feedback .pf-header.correct { color: var(--c-success); }
+.practice-feedback .pf-header.wrong { color: var(--c-danger); }
+.practice-feedback .pf-answer,
+.practice-feedback .pf-explanation {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.practice-feedback .pf-label { font-weight: 600; color: var(--c-text); }
+.practice-feedback .pf-value { color: var(--c-text-secondary); }
+.q-option.locked { pointer-events: none; opacity: 0.9; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

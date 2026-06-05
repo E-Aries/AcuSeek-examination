@@ -154,21 +154,44 @@
     </el-card>
 
     <!-- Grade Dialog -->
-    <el-dialog v-model="showGradeDialog" title="批改试卷" width="420px">
+    <el-dialog v-model="showGradeDialog" title="逐题批改" width="700px" :close-on-click-modal="false">
       <div class="grade-form">
-        <p style="margin-bottom:16px;color:var(--c-text-secondary);font-size:14px">
-          考生：<strong>{{ gradingPaper.name }}</strong>
-        </p>
-        <el-form label-position="top">
-          <el-form-item label="主观题得分">
-            <el-input-number v-model="gradeScore" :min="0" :max="100" :step="1" style="width:160px" />
-            <span style="margin-left:8px;color:var(--c-text-tertiary);font-size:13px">分</span>
-          </el-form-item>
-        </el-form>
+        <div class="grade-header">
+          <span>考生：<strong>{{ gradingPaper.name }}</strong></span>
+          <span style="color:var(--c-text-tertiary);font-size:13px">总分：{{ gradeTotalScore }} / {{ gradeMaxScore }}</span>
+        </div>
+        <div v-loading="gradeLoading" class="grade-questions">
+          <div v-for="(q, i) in gradeQuestions" :key="i" class="grade-q-item" :class="{ 'grade-auto': q.autoGraded, 'grade-manual': !q.autoGraded }">
+            <div class="grade-q-header">
+              <span class="grade-q-num">第 {{ i + 1 }} 题</span>
+              <el-tag :type="qTypeTag(q.type)" size="small" effect="plain">{{ q.type }}</el-tag>
+              <span class="grade-q-score">{{ q.score }} 分</span>
+              <el-tag v-if="q.autoGraded" :type="q.correct ? 'success' : 'danger'" size="small" effect="dark" round>
+                {{ q.correct ? "正确" : "错误" }}
+              </el-tag>
+            </div>
+            <div class="grade-q-content">{{ q.content }}</div>
+            <div v-if="q.userAnswer !== undefined && q.userAnswer !== null" class="grade-answer">
+              <span class="grade-answer-label">考生答案：</span>
+              <span class="grade-answer-text">{{ formatAnswer(q.userAnswer) }}</span>
+            </div>
+            <div v-if="q.correctAnswer" class="grade-correct">
+              <span class="grade-correct-label">正确答案：</span>
+              <span class="grade-correct-text">{{ q.correctAnswer }}</span>
+            </div>
+            <div v-if="!q.autoGraded" class="grade-input">
+              <span class="grade-input-label">给分：</span>
+              <el-input-number v-model="q.manualScore" :min="0" :max="q.score" :step="1" size="small" style="width:120px" @change="recalcGradeTotal" />
+              <span style="margin-left:4px;color:var(--c-text-tertiary);font-size:12px">/ {{ q.score }} 分</span>
+            </div>
+          </div>
+        </div>
       </div>
       <template #footer>
         <el-button @click="showGradeDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmGrade">确认批改</el-button>
+        <el-button type="primary" @click="confirmGrade" :loading="gradeSubmitting">
+          确认批改（{{ gradeTotalScore }} 分）
+        </el-button>
       </template>
     </el-dialog>
     <!-- Edit Dialog -->
@@ -250,6 +273,11 @@ const editForm = reactive({ name: "", type: "正式", duration: 60, questionCoun
 
 const gradingPaper = ref({});
 const gradeScore = ref(0);
+const gradeQuestions = ref([]);
+const gradeLoading = ref(false);
+const gradeSubmitting = ref(false);
+const gradeTotalScore = ref(0);
+const gradeMaxScore = ref(0);
 
 const exam = ref({});
 const detail = ref({});
@@ -327,18 +355,82 @@ async function closeExam() {
   } catch(e) { ElMessage.error("关闭失败"); }
 }
 
-function openGradeDialog(row) {
+function qTypeTag(type) { return { "单选": "", "多选": "success", "判断": "warning", "填空": "info", "简答": "danger" }[type] || ""; }
+
+function formatAnswer(ans) {
+  if (ans === null || ans === undefined) return "未作答";
+  if (Array.isArray(ans)) return ans.join(", ");
+  return String(ans);
+}
+
+function autoGrade(type, userAns, correctAns) {
+  if (userAns === undefined || userAns === null) return false;
+  if (type === "简答") return null;
+  if (type === "单选" || type === "判断") return String(userAns).trim() === String(correctAns).trim();
+  if (type === "多选") {
+    const ua = new Set(Array.isArray(userAns) ? userAns.map(String) : [String(userAns)]);
+    try {
+      const ca = new Set(correctAns.startsWith("[") ? JSON.parse(correctAns).map(String) : [String(correctAns)]);
+      return ua.size === ca.size && [...ua].every(v => ca.has(v));
+    } catch(e) { return false; }
+  }
+  if (type === "填空") return String(userAns || "").trim() === String(correctAns).trim();
+  return false;
+}
+
+async function openGradeDialog(row) {
   gradingPaper.value = row;
-  gradeScore.value = row.score || Math.round((exam.value.pass_score || 60) * 0.7);
   showGradeDialog.value = true;
+  gradeLoading.value = true;
+  gradeQuestions.value = [];
+  try {
+    const res = await api.exams.paper(row.paper_id);
+    const questions = res.questions || [];
+    const answers = res.answers || {};
+    const qs = [];
+    questions.forEach(pq => {
+      const qid = String(pq.id);
+      const userAns = answers[qid];
+      const correctAns = pq.answer || "";
+      const isAuto = pq.type !== "简答";
+      const correct = autoGrade(pq.type, userAns, correctAns);
+      qs.push({
+        ...pq,
+        userAnswer: userAns,
+        correctAnswer: correctAns,
+        autoGraded: isAuto,
+        correct: correct === true,
+        manualScore: correct === true ? pq.score : (correct === false ? 0 : Math.round((pq.score || 2) * 0.5))
+      });
+    });
+    gradeQuestions.value = qs;
+    recalcGradeTotal();
+  } catch(e) {
+    ElMessage.error("加载试卷失败");
+  } finally {
+    gradeLoading.value = false;
+  }
+}
+
+function recalcGradeTotal() {
+  let total = 0;
+  gradeQuestions.value.forEach(q => {
+    if (q.autoGraded) {
+      total += q.correct ? (q.score || 2) : 0;
+    } else {
+      total += (q.manualScore || 0);
+    }
+  });
+  gradeTotalScore.value = total;
+  gradeMaxScore.value = gradeQuestions.value.reduce((s, q) => s + (q.score || 2), 0);
 }
 
 async function confirmGrade() {
+  gradeSubmitting.value = true;
   try {
-    await api.answers.grade(gradingPaper.value.paper_id, { score: gradeScore.value });
-    ElMessage.success("批改完成");
+    await api.answers.grade(gradingPaper.value.paper_id, { score: gradeTotalScore.value });
+    ElMessage.success("批改完成，得分：" + gradeTotalScore.value);
     showGradeDialog.value = false;
-    // Refresh
     const papersRes = await api.exams.papers(route.params.id);
     allCandidates.value = (papersRes.items || []).map(p => ({
       paper_id: p.paper_id, name: p.name, department: p.department || "",
@@ -346,6 +438,7 @@ async function confirmGrade() {
       duration_used: p.duration_used, submitted_at: p.submitted_at
     }));
   } catch(e) { ElMessage.error("批改失败"); }
+  gradeSubmitting.value = false;
 }
 
 function exportCandidates() {
@@ -505,5 +598,82 @@ function confirmDelete() {
   font-weight: 500;
 }
 
-.grade-form { padding: 8px 0; }
+.grade-form { }
+.grade-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--c-border-light);
+  margin-bottom: 16px;
+}
+.grade-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+.grade-q-item {
+  border: 1px solid var(--c-border-light);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.grade-q-item.grade-auto {
+  border-left: 3px solid var(--c-success);
+}
+.grade-q-item.grade-manual {
+  border-left: 3px solid var(--c-warning);
+}
+.grade-q-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.grade-q-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+.grade-q-score {
+  font-size: 12px;
+  color: var(--c-text-tertiary);
+  margin-left: auto;
+}
+.grade-q-content {
+  font-size: 14px;
+  color: var(--c-text);
+  line-height: 1.6;
+}
+.grade-answer, .grade-correct {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+}
+.grade-answer {
+  background: var(--c-bg);
+}
+.grade-answer-label { font-weight: 600; color: var(--c-text-secondary); }
+.grade-answer-text { color: var(--c-text); }
+.grade-correct {
+  background: var(--c-success-bg);
+  border: 1px solid var(--c-success);
+}
+.grade-correct-label { font-weight: 600; color: var(--c-success); }
+.grade-correct-text { color: var(--c-text); }
+.grade-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--c-border-light);
+}
+.grade-input-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-warning);
+}
 </style>

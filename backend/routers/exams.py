@@ -42,9 +42,9 @@ def get_exam(eid: int, db = Depends(get_db)):
     return exam
 
 @router.post("/{eid}/start")
-def start_exam(eid: int, user = Depends(get_current_user), db = Depends(get_db)):
+def start_exam(eid: int, mode: str = "", user = Depends(get_current_user), db = Depends(get_db)):
     existing = db.query(ExamPaper).filter(ExamPaper.exam_id == eid, ExamPaper.user_id == user.id).first()
-    if existing: return {"paper_id": existing.id, "questions": existing.questions}
+    if existing and mode != "practice": return {"paper_id": existing.id, "questions": existing.questions}
 
     exam = db.query(Exam).filter(Exam.id == eid).first()
     if not exam: raise HTTPException(status_code=404, detail="考试不存在")
@@ -66,7 +66,10 @@ def start_exam(eid: int, user = Depends(get_current_user), db = Depends(get_db))
         random.shuffle(all_qs)
         selected = all_qs[:exam.question_count]
 
-    snapshot = [{"id": q.id, "type": q.type, "content": q.content, "options": q.options, "score": q.score} for q in selected]
+    if mode == "practice":
+        snapshot = [{"id": q.id, "type": q.type, "content": q.content, "options": q.options, "score": q.score, "answer": q.answer, "explanation": q.explanation} for q in selected]
+    else:
+        snapshot = [{"id": q.id, "type": q.type, "content": q.content, "options": q.options, "score": q.score} for q in selected]
     paper = ExamPaper(exam_id=eid, user_id=user.id, questions=snapshot)
     db.add(paper)
     db.commit()
@@ -154,6 +157,13 @@ def update_exam(eid: int, data: dict, db = Depends(get_db)):
             setattr(exam, k, v)
     db.commit()
     return {"message": "更新成功"}
+
+@router.get("/paper/{pid}")
+def get_paper_detail(pid: int, db = Depends(get_db)):
+    paper = db.query(ExamPaper).filter(ExamPaper.id == pid).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="试卷不存在")
+    return {"paper_id": paper.id, "questions": paper.questions or [], "answers": paper.answers or {}, "score": paper.score, "status": paper.status}
 
 @router.delete("/{eid}")
 def delete_exam(eid: int, db = Depends(get_db)):

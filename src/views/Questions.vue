@@ -56,6 +56,14 @@
         </el-table-column>
         <el-table-column label="使用次数" width="80" align="right" prop="used" />
         <el-table-column label="最近使用" width="90" prop="lastUsed" />
+        <el-table-column label="解析" width="60" align="center">
+          <template #default="scope">
+            <el-tooltip v-if="scope.row.explanation" :content="scope.row.explanation" placement="top" max-width="400">
+              <el-icon :size="16" style="color:var(--c-text-tertiary);cursor:pointer"><InfoFilled /></el-icon>
+            </el-tooltip>
+            <span v-else style="color:var(--c-text-tertiary);font-size:12px">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="100" fixed="right">
           <template #default="scope">
             <el-button text type="primary" size="small" @click="editQuestion(scope.row)">编辑</el-button>
@@ -76,7 +84,7 @@
     </el-card>
 
     <!-- Add/Edit Dialog -->
-    <el-dialog v-model="showDialog" title="新增题目" width="600px" :close-on-click-modal="false">
+    <el-dialog v-model="showDialog" :title="editingId ? '编辑题目' : '新增题目'" width="600px" :close-on-click-modal="false">
       <el-form :model="newQuestion" label-width="80px" label-position="top">
         <el-form-item label="题型">
           <el-radio-group v-model="newQuestion.type">
@@ -170,7 +178,7 @@
 <script setup>
 
 import { ref, computed, onMounted } from "vue";
-import { Plus, Upload, Download, Search, Delete } from "@element-plus/icons-vue";
+import { Plus, Upload, Download, Search, Delete , InfoFilled } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage, ElMessageBox } from "element-plus";
 
@@ -346,7 +354,7 @@ function handleExport() {
 
 function editQuestion(row) {
   editingId.value = row.id;
-  newQuestion.value = { ...newQuestion.value, ...row, options: row.options || [] };
+  newQuestion.value = { ...newQuestion.value, ...row, options: row.options || [], explanation: row.explanation || "" };
   showDialog.value = true;
 }
 

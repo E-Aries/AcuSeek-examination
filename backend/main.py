@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from pathlib import Path
 from database import engine, Base
-from routers import auth, questions, exams, answers, results, users, dashboard, categories
+from routers import auth, questions, exams, answers, results, users, dashboard, categories, settings, logs, notifications
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +21,9 @@ app.include_router(results.router)
 app.include_router(users.router)
 app.include_router(dashboard.router)
 app.include_router(categories.router)
+app.include_router(settings.router)
+app.include_router(logs.router)
+app.include_router(notifications.router)
 
 @app.get("/api/health")
 def health():
