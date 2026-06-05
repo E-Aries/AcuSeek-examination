@@ -117,7 +117,9 @@
       <main class="content">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
-            <component :is="Component" />
+            <keep-alive :include="keepAlivePages">
+              <component :is="Component" />
+            </keep-alive>
           </transition>
         </router-view>
       </main>
@@ -131,6 +133,7 @@ import { useRoute, useRouter } from "vue-router";
 import { Bell, ArrowDown, Fold, Expand } from "@element-plus/icons-vue";
 
 const route = useRoute();
+const keepAlivePages = ["Exams", "Questions", "Results", "Dashboard", "Users", "Categories", "Logs", "Settings", "Profile"];
 const router = useRouter();
 const unreadCount = ref(0);
 const sidebarCollapsed = ref(false);

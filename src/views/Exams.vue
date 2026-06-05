@@ -139,15 +139,7 @@ onMounted(async () => {
     ]);
     const examStats = {};
     (byExamRes.items || []).forEach(r => { examStats[r.exam_id] = r.candidates; });
-    const examIds = (examRes.items || []).map(e => e.id);
-    const paperCounts = {};
-    await Promise.all(examIds.map(async (id) => {
-      try {
-        const pr = await api.exams.questions(id);
-        paperCounts[id] = (pr.items || []).length;
-      } catch(e) { paperCounts[id] = 0; }
-    }));
-    exams.value = (examRes.items || []).map(e => ({ ...e, questionCount: paperCounts[e.id] || e.question_count, candidates: examStats[e.id] || 0, date: e.status === "未开始" ? "待定" : e.status }));
+    exams.value = (examRes.items || []).map(e => ({ ...e, questionCount: e.question_count, candidates: examStats[e.id] || 0, date: e.status === "未开始" ? "待定" : e.status }));
     questionTypes.value = (qStats.items || []).map(s => s.type);
     categories.value = (catRes.items || []);
   } catch(e) { console.error(e); }
