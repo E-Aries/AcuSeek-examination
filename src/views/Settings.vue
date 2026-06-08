@@ -65,20 +65,6 @@
             </div>
           </el-form-item>
 
-          <el-divider />
-          <h3 class="section-title">考试默认设置</h3>
-
-          <div class="settings-grid">
-            <el-form-item label="默认及格分">
-              <el-input-number v-model="form.default_pass_score" :min="0" :max="100" :step="5" style="width:100%" />
-            </el-form-item>
-            <el-form-item label="切屏次数">
-              <el-input-number v-model="form.max_switches" :min="0" :max="10" style="width:100%" />
-            </el-form-item>
-            <el-form-item label="默认时长(分)">
-              <el-input-number v-model="form.default_duration" :min="5" :max="180" :step="5" style="width:100%" />
-            </el-form-item>
-          </div>
 
           <el-divider />
           <el-form-item>
@@ -131,9 +117,7 @@ const form = ref({
   favicon_url: "",
   copyright_text: "",
   version_text: "v1.0.0",
-  default_pass_score: 60,
-  max_switches: 3,
-  default_duration: 60,
+
 });
 const saving = ref(false);
 const uploadTarget = ref("");
@@ -191,9 +175,6 @@ async function loadSettings() {
     if (data.favicon_url) form.value.favicon_url = data.favicon_url;
     if (data.copyright_text) form.value.copyright_text = data.copyright_text;
     if (data.version_text) form.value.version_text = data.version_text;
-    if (data.default_pass_score) form.value.default_pass_score = parseInt(data.default_pass_score);
-    if (data.max_switches) form.value.max_switches = parseInt(data.max_switches);
-    if (data.default_duration) form.value.default_duration = parseInt(data.default_duration);
   } catch (e) {}
 }
 
@@ -265,8 +246,6 @@ onMounted(loadSettings);
 .preview-img.lg { max-width: 200px; max-height: 80px; }
 .preview-img.sm { max-width: 160px; max-height: 48px; }
 .preview-img.favicon { width: 32px; height: 32px; }
-
-.settings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
 /* Preview panel */
 .oem-preview { position: sticky; top: 20px; }

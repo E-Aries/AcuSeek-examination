@@ -18,7 +18,12 @@ def result_stats(db = Depends(get_db)):
     exams_count = db.query(func.count(Exam.id)).scalar()
     papers = db.query(ExamPaper).filter(ExamPaper.status.in_(["已完成", "待批改"])).all()
     total = len(papers)
-    passed = sum(1 for p in papers if (p.score or 0) >= 60)
+    papers_data = db.query(ExamPaper, Exam).join(Exam, ExamPaper.exam_id == Exam.id).filter(ExamPaper.status.in_(["已完成", "待批改"])).all()
+    passed = 0
+    for p, e in papers_data:
+        ms = sum(q.get("score", 0) for q in (p.questions or []))
+        if ms > 0 and (p.score or 0) >= ms * e.pass_score / 100:
+            passed += 1
     pending = sum(1 for p in papers if p.status == "待批改")
     return {"exams_count": exams_count, "total_candidates": total, "pass_rate": round(passed/total*100) if total else 0, "pending": pending}
 
@@ -34,7 +39,11 @@ def results_by_exam(db = Depends(get_db)):
             continue
         scores = [p.score or 0 for p in submitted]
         avg_score = round(sum(scores) / len(scores), 1) if scores else 0
-        passed_count = sum(1 for p in submitted if (p.score or 0) >= e.pass_score)
+        passed_count = 0
+        for p in submitted:
+            ms = sum(q.get("score", 0) for q in (p.questions or []))
+            if ms > 0 and (p.score or 0) >= ms * e.pass_score / 100:
+                passed_count += 1
         top_score = max(scores) if scores else 0
         items.append({
             "exam_id": e.id, "exam_name": e.name, "exam_type": e.type,

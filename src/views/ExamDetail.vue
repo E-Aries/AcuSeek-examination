@@ -7,7 +7,7 @@
         <div>
           <div class="detail-type-badge">
             <span class="exam-type-badge" :class="exam.type">{{ exam.type }}</span>
-            <el-tag :type="exam.status === '进行中' ? 'danger' : exam.status === '未开始' ? 'info' : ''" size="small" effect="dark" round>{{ exam.status }}</el-tag>
+            <el-tag :type="exam.status === '进行中' ? 'danger' : exam.status === '未开始' ? 'info' : ''" size="small" effect="light" round>{{ exam.status }}</el-tag>
           </div>
           <h1 class="detail-title">{{ exam.name }}</h1>
         </div>
@@ -99,14 +99,13 @@
                 <span v-else style="color:var(--c-text-tertiary)">-</span>
               </template>
             </el-table-column>
-            <el-table-column label="结果" width="80">
+            <el-table-column <el-table-column label="结果" width="90">
               <template #default="{ row }">
-                <el-tag v-if="row.status === '已完成'" :type="row.score >= (exam.pass_score || 60) ? 'success' : 'danger'" size="small" effect="plain" round>{{ row.score >= (exam.pass_score || 60) ? '通过' : '未通过' }}</el-tag>
-                <el-tag v-else-if="row.status === '待批改'" type="warning" size="small" effect="plain" round>待批改</el-tag>
-                <el-tag v-else type="info" size="small" effect="plain" round>进行中</el-tag>
+                <span v-if="row.status === '已完成'" :style="gradeTagStyle(row.score, row.total_score)">{{ getGrade(row.score, row.total_score).label }}</span>
+                <span v-else-if="row.status === '待批改'" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;background:#FEF3C7;color:#D97706">待批改</span>
+                <span v-else style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;background:#F3F4F6;color:#9CA3AF">进行中</span>
               </template>
-            </el-table-column>
-            <el-table-column label="用时" width="80" align="right">
+            </el-table-column>            <el-table-column label="用时" width="80" align="right">
               <template #default="{ row }">
                 <span v-if="row.duration_used">{{ Math.floor(row.duration_used / 60) }}分</span>
                 <span v-else>-</span>
@@ -122,7 +121,7 @@
               <template #default="{ row }">
                 <el-button v-if="row.status === '待批改'" text type="warning" size="small" @click="openGradeDialog(row)">批改</el-button>
                 <el-button v-else-if="row.status === '已完成'" text type="primary" size="small" @click="$router.push('/results/' + row.paper_id)">详情</el-button>
-                <el-button v-if="row.status === '已完成' && (row.score < (exam.pass_score || 60))" text type="danger" size="small" @click="handleRetake(row)">补考</el-button>
+                <el-button v-if="exam.type !== '模拟' && row.status === '已完成' && (row.score < (exam.pass_score || 60))" text type="danger" size="small" @click="handleRetake(row)">补考</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -145,7 +144,7 @@
               <div class="config-item">
                 <span class="config-label">考试状态</span>
                 <span class="config-value">
-                  <el-tag :type="exam.status === '进行中' ? 'danger' : exam.status === '未开始' ? 'info' : ''" size="small" effect="dark" round>{{ exam.status }}</el-tag>
+                  <el-tag :type="exam.status === '进行中' ? 'danger' : exam.status === '未开始' ? 'info' : ''" size="small" effect="light" round>{{ exam.status }}</el-tag>
                 </span>
               </div>
             </div>
@@ -167,7 +166,7 @@
               <span class="grade-q-num">第 {{ i + 1 }} 题</span>
               <el-tag :type="qTypeTag(q.type)" size="small" effect="plain">{{ q.type }}</el-tag>
               <span class="grade-q-score">{{ q.score }} 分</span>
-              <el-tag v-if="q.autoGraded" :type="q.correct ? 'success' : 'danger'" size="small" effect="dark" round>
+              <el-tag v-if="q.autoGraded" :type="q.correct ? 'success' : 'danger'" size="small" effect="light" round>
                 {{ q.correct ? "正确" : "错误" }}
               </el-tag>
             </div>
@@ -213,18 +212,22 @@
             <el-input-number v-model="editForm.duration" :min="5" :max="180" :step="5" style="width:100%" />
           </el-form-item>
           <el-form-item label="题目数量">
-            <el-input-number v-model="editForm.questionCount" :min="5" :max="100" style="width:100%" />
+            <el-input-number v-model="editForm.questionCount" :min="5" :max="100" style="width:100%" @change="editOnQCountChange" />
           </el-form-item>
         </div>
         <el-form-item label="组卷方式">
           <el-radio-group v-model="editForm.strategy">
             <el-radio value="random">随机组卷</el-radio>
-            <el-radio value="manual">手动组卷</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="及格分数线">
-          <el-input-number v-model="editForm.passScore" :min="0" :max="100" :step="5" style="width:120px" />
-          <span style="margin-left:8px;color:var(--c-text-secondary);font-size:13px">分</span>
+                <el-form-item v-if="editForm.strategy === &#39;random&#39;" label="题型分布">
+          <div class="dist-config">
+            <div v-for="(dist, key) in editForm.distribution" :key="key" class="dist-row">
+              <span class="dist-label">{{ key }}</span>
+              <el-slider v-model="dist.count" :min="0" :max="30" :marks="{ 0: &#39;0&#39;, 10: &#39;10&#39;, 20: &#39;20&#39;, 30: &#39;30&#39; }" show-input size="small" @change="editSyncDistTotal" />
+            </div>
+          </div>
+          <div v-if="editFormDistTotal > 0" class="dist-total">合计 <strong>{{ editFormDistTotal }}</strong> 题</div>
         </el-form-item>
         <el-form-item label="关联分类">
           <el-select v-model="editForm.categories" multiple placeholder="选择分类" style="width:100%">
@@ -270,7 +273,7 @@ const addBtnDisabled = computed(() => {
 const selectedAddCount = computed(() => {
   try { return addTableRef.value ? (addTableRef.value.getSelectionRows() || []).length : 0; } catch(e) { return 0; }
 });
-const editForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [] });
+const editForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [], distribution: {} });
 
 const gradingPaper = ref({});
 const gradeScore = ref(0);
@@ -322,6 +325,36 @@ async function handleRetake(row) {
   } catch(e) { if (e !== "cancel") ElMessage.error("操作失败"); }
 }
 
+async function gradeTagStyle(score, total) {
+  if (!total || score === null || score === undefined) return { backgroundColor: "#F3F4F6", color: "#9CA3AF", borderRadius: "4px", padding: "2px 8px", fontSize: "12px", fontWeight: 600, display: "inline-block" };
+  var pct = score / total;
+  if (pct >= 0.95) return { backgroundColor: "#FEF3C7", color: "#D97706", borderRadius: "4px", padding: "2px 8px", fontSize: "12px", fontWeight: 600, display: "inline-block" };
+  if (pct >= 0.80) return { backgroundColor: "#DBEAFE", color: "#2563EB", borderRadius: "4px", padding: "2px 8px", fontSize: "12px", fontWeight: 600, display: "inline-block" };
+  if (pct >= 0.60) return { backgroundColor: "#D1FAE5", color: "#059669", borderRadius: "4px", padding: "2px 8px", fontSize: "12px", fontWeight: 600, display: "inline-block" };
+  return { backgroundColor: "#FEE2E2", color: "#DC2626", borderRadius: "4px", padding: "2px 8px", fontSize: "12px", fontWeight: 600, display: "inline-block" };
+}
+
+function getGrade(score, total) {
+  if (!total || score === null || score === undefined) return { label: "-", type: "info" };
+  var pct = score / total;
+  if (pct >= 0.95) return { label: "优秀", type: "warning" };
+  if (pct >= 0.80) return { label: "良好", type: "primary" };
+  if (pct >= 0.60) return { label: "通过", type: "success" };
+  return { label: "未通过", type: "danger" };
+}
+
+async function loadCandidates() {
+  try {
+    const papersRes = await api.exams.papers(route.params.id);
+    allCandidates.value = (papersRes.items || []).map(p => ({
+      paper_id: p.paper_id, name: p.name, department: p.department || "",
+      score: p.score, status: p.status, user_id: p.user_id,
+      duration_used: p.duration_used, submitted_at: p.submitted_at,
+      total_score: p.total_score
+    }));
+  } catch(e) {}
+}
+
 async function loadPaper() {
   try {
     const res = await api.exams.questions(route.params.id);
@@ -341,8 +374,9 @@ onMounted(async () => {
     detail.value = detailRes;
     allCandidates.value = (papersRes.items || []).map(p => ({
       paper_id: p.paper_id, name: p.name, department: p.department || "",
-      score: p.score, status: p.status,
-      duration_used: p.duration_used, submitted_at: p.submitted_at
+      score: p.score, status: p.status, user_id: p.user_id,
+      duration_used: p.duration_used, submitted_at: p.submitted_at,
+      total_score: p.total_score
     }));
   } catch(e) { ElMessage.error("加载考试数据失败"); }
   loadPaper();
@@ -373,14 +407,28 @@ function formatAnswer(ans) {
   return String(ans);
 }
 
-function autoGrade(type, userAns, correctAns) {
+function autoGrade(type, userAns, correctAns, options) {
   if (userAns === undefined || userAns === null) return false;
   if (type === "简答") return null;
-  if (type === "单选" || type === "判断") return String(userAns).trim() === String(correctAns).trim();
+  if (type === "判断") {
+    if (options && options.length) {
+      var optMap = {};
+      options.forEach(function(o) { optMap[o.label] = o.text; });
+      var userAnsText = optMap[String(userAns).trim()] || String(userAns).trim();
+      return userAnsText === String(correctAns).trim();
+    }
+    return String(userAns).trim() === String(correctAns).trim();
+  }
+  if (type === "单选") return String(userAns).trim() === String(correctAns).trim();
   if (type === "多选") {
     const ua = new Set(Array.isArray(userAns) ? userAns.map(String) : [String(userAns)]);
     try {
-      const ca = new Set(correctAns.startsWith("[") ? JSON.parse(correctAns).map(String) : [String(correctAns)]);
+      var ca;
+      if (correctAns.startsWith("[")) {
+        ca = new Set(JSON.parse(correctAns).map(String));
+      } else {
+        ca = new Set(correctAns.split(",").map(function(s) { return s.trim(); }).filter(function(s) { return s; }));
+      }
       return ua.size === ca.size && [...ua].every(v => ca.has(v));
     } catch(e) { return false; }
   }
@@ -394,16 +442,23 @@ async function openGradeDialog(row) {
   gradeLoading.value = true;
   gradeQuestions.value = [];
   try {
-    const res = await api.exams.paper(row.paper_id);
-    const questions = res.questions || [];
-    const answers = res.answers || {};
+    const [paperRes, qRes] = await Promise.all([
+      api.exams.paper(row.paper_id),
+      api.questions.list({ size: 999 })
+    ]);
+    const allQs = qRes.items || [];
+    const qMap = {};
+    allQs.forEach(function(q) { qMap[q.id] = q; });
+    const questions = paperRes.questions || [];
+    const answers = paperRes.answers || {};
     const qs = [];
     questions.forEach(pq => {
       const qid = String(pq.id);
       const userAns = answers[qid];
-      const correctAns = pq.answer || "";
+      const fullQ = qMap[pq.id] || {};
+      const correctAns = fullQ.answer || "";
       const isAuto = pq.type !== "简答";
-      const correct = autoGrade(pq.type, userAns, correctAns);
+      const correct = autoGrade(pq.type, userAns, correctAns, fullQ.options);
       qs.push({
         ...pq,
         userAnswer: userAns,
@@ -438,14 +493,24 @@ function recalcGradeTotal() {
 async function confirmGrade() {
   gradeSubmitting.value = true;
   try {
-    await api.answers.grade(gradingPaper.value.paper_id, { score: gradeTotalScore.value });
+    var gradeDetails = {};
+    gradeQuestions.value.forEach(function(q) {
+      gradeDetails[String(q.id)] = {
+        score: q.autoGraded ? (q.correct ? q.score : 0) : (q.manualScore || 0),
+        maxScore: q.score,
+        correct: q.correct === true,
+        manual: !q.autoGraded
+      };
+    });
+    await api.answers.grade(gradingPaper.value.paper_id, { score: gradeTotalScore.value, details: gradeDetails });
     ElMessage.success("批改完成，得分：" + gradeTotalScore.value);
     showGradeDialog.value = false;
     const papersRes = await api.exams.papers(route.params.id);
     allCandidates.value = (papersRes.items || []).map(p => ({
       paper_id: p.paper_id, name: p.name, department: p.department || "",
-      score: p.score, status: p.status,
-      duration_used: p.duration_used, submitted_at: p.submitted_at
+      score: p.score, status: p.status, user_id: p.user_id,
+      duration_used: p.duration_used, submitted_at: p.submitted_at,
+      total_score: p.total_score
     }));
   } catch(e) { ElMessage.error("批改失败"); }
   gradeSubmitting.value = false;
@@ -471,6 +536,24 @@ function copyShareLink() {
   navigator.clipboard.writeText(link).then(() => ElMessage.success("考试链接已复制"));
 }
 
+const editFormDistTotal = computed(() => {
+  let total = 0;
+  for (var k in (editForm.distribution || {})) {
+    if (editForm.distribution[k] && editForm.distribution[k].count) {
+      total += editForm.distribution[k].count;
+    }
+  }
+  return total;
+});
+function editSyncDistTotal() {
+  editForm.questionCount = editFormDistTotal.value;
+}
+function editOnQCountChange(val) {
+  for (var k in editForm.distribution) {
+    if (editForm.distribution[k]) editForm.distribution[k].count = 0;
+  }
+}
+
 function openEditDialog() {
   editForm.name = exam.value.name
   editForm.type = exam.value.type
@@ -479,6 +562,7 @@ function openEditDialog() {
   editForm.passScore = exam.value.pass_score
   editForm.strategy = exam.value.strategy
   editForm.categories = exam.value.categories || []
+  editForm.distribution = exam.value.distribution || {}
   showEditDialog.value = true
 }
 
@@ -487,7 +571,8 @@ async function saveEdit() {
     await api.exams.update(route.params.id, {
       name: editForm.name, type: editForm.type, duration: editForm.duration,
       question_count: editForm.questionCount, pass_score: editForm.passScore,
-      strategy: editForm.strategy, categories: editForm.categories
+      strategy: editForm.strategy, categories: editForm.categories,
+      distribution: editForm.distribution
     })
     ElMessage.success("更新成功")
     showEditDialog.value = false
@@ -508,6 +593,10 @@ function confirmDelete() {
 </script>
 
 <style scoped>
+.dist-config { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.dist-row { display: flex; align-items: center; gap: 12px; }
+.dist-label { width: 56px; font-size: 13px; color: var(--c-text-secondary); flex-shrink: 0; }
+
 .exam-detail {
   display: flex;
   flex-direction: column;

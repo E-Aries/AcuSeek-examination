@@ -22,10 +22,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="100" align="center">
           <template #default="{ row }">
-            <el-button v-if="row.role !== 'admin'" text type="primary" size="small" @click="editUser(row)">编辑</el-button>
-            <el-button v-if="row.role !== 'admin'" text type="danger" size="small" @click="deleteUser(row.id)">删除</el-button>
+            <span class="action-group">
+              <el-button text size="small" :icon="Edit" @click="editUser(row)" title="编辑" />
+              <el-button text type="danger" size="small" :icon="Delete" @click="deleteUser(row.id)" title="删除" />
+            </span>
           </template>
         </el-table-column>
       </el-table>
@@ -62,7 +64,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { Plus, Search } from "@element-plus/icons-vue";
+import { Plus, Search, Edit, Delete } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 const search = ref("");
@@ -132,4 +134,20 @@ async function deleteUser(id) {
 .toolbar-left { display: flex; gap: 8px; }
 .search-input { width: 240px; }
 .table-card { border-radius: var(--radius-lg); }
+.action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+  }
+  .action-group .el-button {
+    margin-left: 0 !important;
+    padding: 5px 4px !important;
+    font-size: 15px;
+  }
+  .action-group .el-button:not(.el-button--danger) {
+    --el-button-text-color: #6B7280;
+  }
+  .action-group .el-button:not(.el-button--danger):hover {
+    --el-button-text-color: #1E3A5F;
+  }
 </style>

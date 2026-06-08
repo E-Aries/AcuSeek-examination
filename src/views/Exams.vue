@@ -73,31 +73,28 @@
             <el-input-number v-model="createForm.duration" :min="5" :max="180" :step="5" style="width:100%" />
           </el-form-item>
           <el-form-item label="题目数量">
-            <el-input-number v-model="createForm.questionCount" :min="5" :max="100" style="width:100%" />
+            <el-input-number v-model="createForm.questionCount" :min="5" :max="100" style="width:100%" @change="onQuestionCountChange" />
           </el-form-item>
         </div>
         <el-form-item label="组卷方式">
           <el-radio-group v-model="createForm.strategy">
             <el-radio value="random">随机组卷</el-radio>
-            <el-radio value="manual">手动组卷</el-radio>
+
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="createForm.strategy === 'random'" label="题型分布">
           <div class="dist-config">
             <div v-for="(dist, key) in createForm.distribution" :key="key" class="dist-row">
               <span class="dist-label">{{ key }}</span>
-              <el-slider v-model="dist.count" :min="0" :max="30" :marks="{ 0: '0', 10: '10', 20: '20', 30: '30' }" show-input size="small" />
+              <el-slider v-model="dist.count" :min="0" :max="30" :marks="{ 0: '0', 10: '10', 20: '20', 30: '30' }" show-input size="small" @change="syncDistTotal" />
             </div>
           </div>
+          <div v-if="createFormDistTotal > 0" class="dist-total">合计 <strong>{{ createFormDistTotal }}</strong> 题</div>
         </el-form-item>
         <el-form-item label="关联分类">
           <el-select v-model="createForm.categories" multiple placeholder="选择题目分类" style="width:100%">
             <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.name" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="及格分数线">
-          <el-input-number v-model="createForm.passScore" :min="0" :max="100" :step="5" style="width: 120px" />
-          <span style="margin-left:8px;color:var(--c-text-secondary);font-size:13px">分</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -154,10 +151,37 @@ watch(showCreate, (val) => {
     createForm.distribution = dist;
   }
 });
+
+const createFormDistTotal = computed(() => {
+  let total = 0;
+  for (var k in (createForm.distribution || {})) {
+    if (createForm.distribution[k] && createForm.distribution[k].count) {
+      total += createForm.distribution[k].count;
+    }
+  }
+  return total;
+});
+function syncDistTotal() {
+  createForm.questionCount = createFormDistTotal.value;
+}
+function onQuestionCountChange(val) {
+  for (var k in createForm.distribution) {
+    if (createForm.distribution[k]) createForm.distribution[k].count = 0;
+  }
+}
+
 async function handleCreate() {
   try {
-    await api.exams.create({ name: createForm.name, type: createForm.type, duration: createForm.duration, question_count: createForm.questionCount, pass_score: createForm.passScore, strategy: createForm.strategy, categories: createForm.categories, distribution: createForm.distribution });
-    ElMessage.success("创建成功");
+    var distData = createForm.distribution;
+    if (distData) {
+      var hasDist = false;
+      for (var k in distData) { if (distData[k] && distData[k].count > 0) { hasDist = true; break; } }
+      if (!hasDist) distData = null;
+    }
+    var createRes = await api.exams.create({ name: createForm.name, type: createForm.type, duration: createForm.duration, question_count: createForm.questionCount, pass_score: createForm.passScore, strategy: createForm.strategy, categories: createForm.categories, distribution: distData });
+    var examId = createRes.id;
+    await api.exams.generate(examId);
+    ElMessage.success("创建成功，试卷已自动生成");
     showCreate.value = false;
     const res = await api.exams.list();
     exams.value = (res.items || []).map(e => ({ ...e, questionCount: e.question_count, candidates: 0, date: e.status }));
@@ -287,6 +311,17 @@ const filteredExams = computed(() => {
   font-size: 13px;
   color: var(--c-text-secondary);
   flex-shrink: 0;
+}
+.dist-total {
+  text-align: center;
+  font-size: 13px;
+  color: var(--c-text-secondary);
+  padding: 6px 0 2px;
+}
+.dist-total strong {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--c-primary);
 }
 .dist-row :deep(.el-slider) {
   flex: 1;

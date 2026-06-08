@@ -56,13 +56,16 @@ def get_exam(eid: int, db = Depends(get_db)):
 @router.post("/{eid}/start")
 def start_exam(eid: int, mode: str = "", user = Depends(get_current_user), db = Depends(get_db)):
     existing = db.query(ExamPaper).filter(ExamPaper.exam_id == eid, ExamPaper.user_id == user.id).first()
-    if existing and existing.status == "已完成":
-        return {"paper_id": existing.id, "questions": existing.questions}
+    exam = db.query(Exam).filter(Exam.id == eid).first()
+    if not exam:
+        raise HTTPException(status_code=404, detail="考试不存在")
+
+    # 正式考试：返回已有试卷
     if existing and existing.status == "进行中":
         return {"paper_id": existing.id, "questions": existing.questions}
-
-    exam = db.query(Exam).filter(Exam.id == eid).first()
-    if not exam: raise HTTPException(status_code=404, detail="考试不存在")
+    if exam.type != "模拟" and mode != "practice":
+        if existing and existing.status in ("已完成",):
+            return {"paper_id": existing.id, "questions": existing.questions}
 
     q = db.query(Question)
     cats = _ensure_list(exam.categories)
@@ -76,8 +79,9 @@ def start_exam(eid: int, mode: str = "", user = Depends(get_current_user), db = 
             pool = [q for q in all_qs if q.type == qtype]
             random.shuffle(pool)
             c = count.get("count", count) if isinstance(count, dict) else count
-            selected.extend(pool[:c])
-    else:
+            if c and c > 0:
+                selected.extend(pool[:min(c, len(pool))])
+    if not selected:
         random.shuffle(all_qs)
         selected = all_qs[:exam.question_count]
 
@@ -118,7 +122,7 @@ def get_exam_papers(eid: int, db = Depends(get_db)):
     return {"items": [{
         "paper_id": r.ExamPaper.id, "name": r.User.name, "department": r.User.department, "user_id": r.User.id,
         "score": r.ExamPaper.score, "status": r.ExamPaper.status,
-        "duration_used": r.ExamPaper.duration_used, "submitted_at": str(r.ExamPaper.submitted_at or "")
+        "duration_used": r.ExamPaper.duration_used, "submitted_at": str(r.ExamPaper.submitted_at or ""), "total_score": sum(q.get("score", 0) for q in (r.ExamPaper.questions or []))
     } for r in rows]}
 
 
@@ -201,6 +205,17 @@ def retake_exam(eid: int, uid: int, user = Depends(get_current_user), db = Depen
     return {"message": "补考已允许，考生可以重新考试"}
 
 
+@router.post("/discard/{paper_id}")
+def discard_paper(paper_id: int, user = Depends(get_current_user), db = Depends(get_db)):
+    paper = db.query(ExamPaper).filter(ExamPaper.id == paper_id, ExamPaper.user_id == user.id).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="试卷不存在")
+    if paper.status != "进行中":
+        raise HTTPException(status_code=400, detail="只能放弃进行中的试卷")
+    paper.status = "已放弃"
+    db.commit()
+    return {"message": "试卷已放弃"}
+
 @router.delete("/{eid}")
 def delete_exam(eid: int, db = Depends(get_db)):
     exam = db.query(Exam).filter(Exam.id == eid).first()
@@ -248,8 +263,9 @@ def generate_exam_paper(eid: int, db = Depends(get_db)):
             count = cfg.get("count", cfg) if isinstance(cfg, dict) else cfg
             if isinstance(count, dict):
                 count = count.get("count", 0)
-            selected.extend(pool[:count])
-    else:
+            if count and count > 0:
+                selected.extend(pool[:min(count, len(pool))])
+    if not selected:
         random.shuffle(all_qs)
         selected = all_qs[:exam.question_count]
     

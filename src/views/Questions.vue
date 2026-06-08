@@ -37,17 +37,22 @@
       <el-table-column type="selection" width="36" />
       <el-table-column label="题型" prop="type" width="60" />
       <el-table-column label="分类" prop="category" width="80" />
-      <el-table-column label="题目" prop="content" show-overflow-tooltip />
+      <el-table-column label="题目" min-width="180" show-overflow-tooltip>
+        <template #default="scope">
+          <span class="q-title-link" @click.stop="previewQuestion(scope.row)" title="点击预览题目">
+            {{ scope.row.content }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="难度" prop="difficulty" width="80" align="center">
         <template #default="scope">
           <el-rate v-model="scope.row.difficulty" disabled :max="3" size="small" />
         </template>
       </el-table-column>
       <el-table-column label="分值" prop="score" width="55" align="center" />
-      <el-table-column label="操作" width="110" align="center">
+      <el-table-column label="操作" width="80" align="center">
         <template #default="scope">
           <span class="action-group">
-            <el-button text size="small" :icon="View" @click="previewQuestion(scope.row)" title="预览" />
             <el-button text size="small" :icon="Edit" @click="editQuestion(scope.row)" title="编辑" />
             <el-button text type="danger" size="small" :icon="Delete" @click="confirmDelete(scope.row.id)" title="删除" />
           </span>

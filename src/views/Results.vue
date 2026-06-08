@@ -84,30 +84,30 @@
         <el-icon :size="48"><Document /></el-icon>
         <p>还没有参加过考核</p>
       </div>
-      <div v-for="item in myResults" :key="item.paper_id" class="my-result-card" @click="router.push('/results/' + item.paper_id)">
+      <div v-for="item in myResults" :key="item.paper_id" class="my-result-card" @click="item.status !== '进行中' ? router.push('/results/' + item.paper_id) : null">
         <div class="my-result-left">
           <div class="my-result-type" :class="item.exam_type">{{ item.exam_type }}</div>
           <div class="my-result-name">{{ item.exam_name }}</div>
         </div>
         <div class="my-result-center">
-          <div class="my-result-status" :class="item.status == '已完成' ? ((item.score || 0) >= (item.pass_score || 60) ? 'pass' : 'fail') : item.status == '待批改' ? 'pending' : 'doing'">
-            <el-icon v-if="item.status == '已完成'"><CircleCheck /></el-icon>
-            <el-icon v-else-if="item.status == '待批改'"><Clock /></el-icon>
-            <el-icon v-else><CaretRight /></el-icon>
-            <template v-if="item.status == '已完成'">
-              <span v-if="(item.score || 0) >= (item.pass_score || 60)" style="color:var(--c-success)">已通过</span>
-              <span v-else style="color:var(--c-danger)">未通过 (及格 {{ item.pass_score }}分)</span>
-            </template>
-            <template v-else-if="item.status == '待批改'">待批改</template>
-            <template v-else>{{ item.status }}</template>
+          <div class="my-result-status">
+            <span v-if="item.status == '已完成'" :style="gradeResultStyle(item)">{{ gradeResultLabel(item) }}</span>
+            <span v-else-if="item.status == '待批改'" style="color:#D97706;font-weight:600">待批改</span>
+            <span v-else-if="item.status === '进行中'" style="color:var(--c-primary);font-weight:600">已开始</span>
+            <span v-else style="color:#9CA3AF">{{ item.status }}</span>
           </div>
           <div class="my-result-time" v-if="item.submitted_at">提交于 {{ item.submitted_at.slice(0, 16).replace('T', ' ') }}</div>
+          <div v-if="item.status === '进行中'" class="inprogress-actions">
+            <el-button size="small" type="primary" plain @click.stop="router.push('/exams/' + item.exam_id + '/take')">继续考试</el-button>
+            <el-button size="small" text type="danger" @click.stop="discardPaper($event, item.paper_id)">放弃</el-button>
+          </div>
         </div>
         <div class="my-result-right">
-          <div class="my-result-score" :class="(item.score || 0) >= (item.total_score || 1) * 0.6 ? 'pass' : 'fail'">
+          <div class="my-result-score">
             <span class="score-value">{{ item.score ?? '-' }}</span>
             <span class="score-sep">/</span>
             <span class="score-total">{{ item.total_score }}</span>
+            <span v-if="item.score != null && item.total_score > 0" class="score-pct">({{ Math.round(item.score / item.total_score * 100) }}%)</span>
           </div>
           <div class="my-result-action">
             <el-button text type="primary" size="small">查看详情 <el-icon><ArrowRight /></el-icon></el-button>
@@ -126,6 +126,35 @@ import { api } from "../api.js";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
+
+async function discardPaper(e, paperId) {
+  e.stopPropagation();
+  var res = await fetch("/api/exams/discard/" + paperId, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+  });
+  var data = await res.json();
+  if (!res.ok) { ElMessage.error(data.detail || "放弃失败"); return; }
+  ElMessage.success(data.message);
+  myResults.value = myResults.value.filter(function(p) { return p.paper_id !== paperId; });
+}
+function gradeResultStyle(item) {
+  if (!item.total_score || item.score === null || item.score === undefined) return { color: "#9CA3AF" };
+  var pct = item.score / item.total_score;
+  if (pct >= 0.95) return { display: "inline-block", padding: "2px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: 600, backgroundColor: "#FEF3C7", color: "#D97706" };
+  if (pct >= 0.80) return { display: "inline-block", padding: "2px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: 600, backgroundColor: "#DBEAFE", color: "#2563EB" };
+  if (pct >= 0.60) return { display: "inline-block", padding: "2px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: 600, backgroundColor: "#D1FAE5", color: "#059669" };
+  return { display: "inline-block", padding: "2px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: 600, backgroundColor: "#FEE2E2", color: "#DC2626" };
+}
+function gradeResultLabel(item) {
+  if (!item.total_score || item.score === null || item.score === undefined) return "-";
+  var pct = Math.round(item.score / item.total_score * 100);
+  if (pct >= 95) return "优秀 " + pct + "%";
+  if (pct >= 80) return "良好 " + pct + "%";
+  if (pct >= 60) return "通过 " + pct + "%";
+  return "未通过 " + pct + "%";
+}
+
 const dateRange = ref(null);
 const examResults = ref([]);
 const myResults = ref([]);
@@ -238,6 +267,8 @@ function exportResults() {
 .my-result-time { font-size: 12px; color: var(--c-text-tertiary); }
 .my-result-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .my-result-score { display: flex; align-items: baseline; gap: 2px; }
+.inprogress-actions { display: flex; gap: 8px; margin-top: 4px; }
+.score-pct { font-size: 11px; color: var(--c-text-tertiary); margin-left: 2px; }
 .my-result-score.pass .score-value { color: var(--c-success); }
 .my-result-score.fail .score-value { color: var(--c-danger); }
 .score-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; }

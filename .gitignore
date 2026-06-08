@@ -51,3 +51,13 @@ _debug.py
 backend/_fix_dup.py
 backend/routers/_profile_schema.py
 examination_backup_*/
+
+# Temp / debug
+_*.py
+.agents/
+backend/_fix_*
+backend/exam.db-*
+backend/examination.db
+summary.md
+*.db-shm
+*.db-wal

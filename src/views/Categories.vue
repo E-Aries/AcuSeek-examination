@@ -11,10 +11,12 @@
         <el-table-column prop="id" label="ID" width="60" align="right" />
         <el-table-column prop="name" label="分类名称" min-width="200" />
         <el-table-column prop="sort" label="排序" width="80" align="center" />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="100" align="center">
           <template #default="{ row }">
-            <el-button text type="primary" size="small" @click="editCategory(row)">编辑</el-button>
-            <el-button text type="danger" size="small" @click="deleteCategory(row.id)">删除</el-button>
+            <span class="action-group">
+              <el-button text size="small" :icon="Edit" @click="editCategory(row)" title="编辑" />
+              <el-button text type="danger" size="small" :icon="Delete" @click="deleteCategory(row.id)" title="删除" />
+            </span>
           </template>
         </el-table-column>
       </el-table>
@@ -39,7 +41,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { Plus } from "@element-plus/icons-vue";
+import { Plus, Edit, Delete } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { api } from "../api.js";
 
@@ -104,4 +106,20 @@ async function deleteCategory(id) {
 .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .toolbar-left { display: flex; gap: 8px; }
 .table-card { border-radius: var(--radius-lg); }
+.action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+  }
+  .action-group .el-button {
+    margin-left: 0 !important;
+    padding: 5px 4px !important;
+    font-size: 15px;
+  }
+  .action-group .el-button:not(.el-button--danger) {
+    --el-button-text-color: #6B7280;
+  }
+  .action-group .el-button:not(.el-button--danger):hover {
+    --el-button-text-color: #1E3A5F;
+  }
 </style>
