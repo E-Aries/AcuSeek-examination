@@ -1,3 +1,5 @@
+// Author: 达咩 | 轻则
+
 const BASE = "/api"
 const API_ORIGIN = import.meta.env.DEV ? "http://192.168.0.230:8000" : window.location.origin
 export const IMAGE_BASE = API_ORIGIN;
