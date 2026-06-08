@@ -1,6 +1,3 @@
-# Author: 达咩
-# 轻则
-
 import hashlib, secrets
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session

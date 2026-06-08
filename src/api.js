@@ -1,5 +1,3 @@
-// Author: 达咩 | 轻则
-
 const BASE = "/api"
 const API_ORIGIN = import.meta.env.DEV ? "http://192.168.0.230:8000" : window.location.origin
 export const IMAGE_BASE = API_ORIGIN;
@@ -10,7 +8,7 @@ async function request(path, options = {}) {
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(BASE + path, { ...options, headers });
-  if (res.status === 401) {
+  if (res.status === 401 && !path.startsWith("/auth/")) {
     localStorage.removeItem("token");
     window.location.href = "/login";
     throw new Error("Unauthorized");

@@ -1,6 +1,4 @@
-<!-- Author: 达咩 | 轻则 -->
-
-﻿<template>
+<template>
   <div class="users-page">
     <div class="toolbar">
       <div class="toolbar-left">

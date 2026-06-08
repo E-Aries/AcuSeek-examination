@@ -1,6 +1,4 @@
-<!-- Author: 达咩 | 轻则 -->
-
-﻿<template>
+<template>
   <div class="take-exam">
     <!-- Top bar: Timer + Progress -->
     <header class="exam-topbar">

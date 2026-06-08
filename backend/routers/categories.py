@@ -1,6 +1,3 @@
-# Author: 达咩
-# 轻则
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db

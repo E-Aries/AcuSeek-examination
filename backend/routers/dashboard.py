@@ -1,7 +1,4 @@
-# Author: 达咩
-# 轻则
-
-﻿from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from datetime import datetime, timezone

@@ -1,6 +1,3 @@
-# Author: 达咩
-# 轻则
-
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from database import get_db

@@ -1,6 +1,3 @@
-# Author: 达咩
-# 轻则
-
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, DateTime, Float, JSON, Boolean, ForeignKey
 from database import Base

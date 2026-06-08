@@ -1,7 +1,4 @@
-# Author: 达咩
-# 轻则
-
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 
 class CreateUserSchema(BaseModel):
     username: str

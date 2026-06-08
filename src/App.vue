@@ -1,6 +1,4 @@
-<!-- Author: 达咩 | 轻则 -->
-
-﻿<template>
+<template>
   <router-view />
 </template>
 

@@ -1,5 +1,3 @@
-<!-- Author: 达咩 | 轻则 -->
-
 <template>
   <div class="login-page">
     <!-- Decorative Background -->
@@ -61,7 +59,7 @@
           <el-form
             ref="formRef"
             :model="form"
-            :rules="rules"
+            :rules="showRegister ? registerRules : rules"
             class="login-form"
             @submit.prevent="handleLogin"
           >
@@ -111,12 +109,12 @@
             <h2 class="form-title">注册账号</h2>
             <p class="form-subtitle">创建一个新的考生账号</p>
           </div>
-          <el-form ref="registerRef" :model="registerForm" class="login-form" @submit.prevent="handleRegister">
-            <el-form-item prop="username" :rules="[{ required: true, message: '请输入用户名' }]">
+          <el-form ref="registerRef" :model="registerForm" :rules="registerRules" class="login-form" @submit.prevent="handleRegister">
+            <el-form-item prop="username">
               <el-input v-model="registerForm.username" placeholder="用户名" :prefix-icon="User" size="large" />
             </el-form-item>
             <el-form-item prop="name">
-              <el-input v-model="registerForm.name" placeholder="姓名（可选）" :prefix-icon="Edit" size="large" />
+              <el-input v-model="registerForm.name" placeholder="姓名" :prefix-icon="Edit" size="large" />
             </el-form-item>
             <el-form-item prop="password" :rules="[{ required: true, message: '\u8bf7\u8f93\u5165密码' }]">
               <el-input v-model="registerForm.password" type="password" placeholder="密码" :prefix-icon="Lock" size="large" show-password />

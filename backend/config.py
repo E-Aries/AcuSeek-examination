@@ -1,6 +1,3 @@
-# Author: 达咩
-# 轻则
-
 DATABASE_URL = "sqlite:///./exam.db"
 SECRET_KEY = "axus-exam-system-secret-key-change-in-production"
 ALGORITHM = "HS256"

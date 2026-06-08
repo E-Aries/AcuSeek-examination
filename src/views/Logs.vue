@@ -1,6 +1,4 @@
-<!-- Author: 达咩 | 轻则 -->
-
-﻿<template>
+<template>
   <div class="logs-page">
     <!-- Header card -->
     <div class="logs-header">

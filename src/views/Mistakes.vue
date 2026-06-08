@@ -1,5 +1,3 @@
-<!-- Author: 达咩 | 轻则 -->
-
 <template>
   <div class="mistakes-page">
     <div class="page-header">

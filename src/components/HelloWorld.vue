@@ -1,5 +1,3 @@
-<!-- Author: 达咩 | 轻则 -->
-
 <script setup>
 import { ref } from 'vue'
 import viteLogo from '../assets/vite.svg'

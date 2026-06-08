@@ -1,6 +1,3 @@
-# Author: 达咩
-# 轻则
-
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
