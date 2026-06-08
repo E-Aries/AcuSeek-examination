@@ -51,3 +51,11 @@ _debug.py
 backend/_fix_dup.py
 backend/routers/_profile_schema.py
 examination_backup_*/
+
+# Agent generated files.agents/
+_*.py
+backend/_fix_*
+*.db-shm
+*.db-wal
+summary.md
+
