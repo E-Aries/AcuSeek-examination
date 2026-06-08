@@ -12,7 +12,8 @@
       <div class="login-brand">
         <div class="brand-content">
           <div class="brand-icon-large">
-            <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" class="axus-logo">
+            <img v-if="brandLogo" :src="brandLogo" class="brand-logo-img" alt="logo" />
+            <svg v-else viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" class="axus-logo">
               <circle cx="36" cy="36" r="36" fill="url(#loginBrandGrad)"/>
               <circle cx="36" cy="36" r="33" stroke="white" stroke-opacity="0.12" stroke-width="0.8"/>
               <text x="36" y="41" text-anchor="middle" fill="white" font-family="'Outfit',sans-serif" font-weight="700" font-size="22" letter-spacing="2">AX</text>
@@ -26,12 +27,9 @@
               </defs>
             </svg>
           </div>
-          <h1 class="brand-title">AXUS</h1>
-          <p class="brand-subtitle">天津硕讯科技有限公司</p>
-          <p class="brand-desc">
-            企业考核管理系统<br>
-            高效 · 公正 · 智能
-          </p>
+          <h1 class="brand-title">{{ brandName }}</h1>
+          <p class="brand-subtitle">{{ brandSubtitle }}</p>
+          <p class="brand-desc" v-html="brandDesc.replace(/\n/g, '<br>')"></p>
           <div class="brand-features">
             <div class="feature-item">
               <el-icon><Select /></el-icon>
@@ -130,7 +128,9 @@
 
         <div class="login-footer-content">
             <p class="login-footer-text">首次使用请联系管理员获取账号</p>
-            <p class="login-company-name">© 天津硕讯科技有限公司</p>
+            <p class="login-footer-copyright" v-if="brandCopyright">{{ brandCopyright }}</p>
+            <p class="login-footer-copyright" v-else-if="brandSubtitle">© {{ brandSubtitle }}</p>
+            <p class="login-footer-version" v-if="brandVersion">{{ brandVersion }}</p>
           </div>
         </div>
       </div>
@@ -139,10 +139,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue"
+import { api } from "../api.js";
 import { useRouter } from "vue-router";
 import { User, Lock, Edit, Select, Coin, DataBoard } from "@element-plus/icons-vue";
-import { api } from "../api.js";
 import { ElMessage } from "element-plus";
 
 const router = useRouter();
@@ -196,6 +196,28 @@ async function handleRegister() {
     registerLoading.value = false;
   });
 }
+const brandName = ref("AXUS")
+const brandSubtitle = ref("")
+const brandLogo = ref("")
+const brandVersion = ref("")
+const brandCopyright = ref("")
+const brandDesc = ref("企业考核管理系统\n高效 · 公正 · 智能")
+
+async function loadBrand() {
+  try {
+    const res = await api.settings.get()
+    if (res && res.site_name) brandName.value = res.site_name
+    if (res && res.company_name) brandSubtitle.value = res.company_name
+    if (res && res.logo_url) brandLogo.value = res.logo_url
+    if (res && res.version_text) brandVersion.value = res.version_text
+    if (res && res.copyright_text) brandCopyright.value = res.copyright_text
+    if (res && res.site_name) {
+      document.title = res.site_name
+    }
+  } catch(e) {}
+}
+onMounted(loadBrand)
+
 async function handleLogin() {
   formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -405,5 +427,35 @@ async function handleLogin() {
   font-weight: 600;
   border-radius: var(--radius-md);
   letter-spacing: 1px;
+}
+.brand-logo-img {
+  width: 100%;
+  max-width: 140px;
+  max-height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+
+.login-footer-content {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border-light);
+}
+.login-footer-text {
+  font-size: 12px;
+  color: var(--c-text-tertiary);
+  margin-bottom: 6px;
+}
+.login-footer-copyright {
+  font-size: 12px;
+  color: var(--c-text-tertiary);
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+.login-footer-version {
+  font-size: 11px;
+  color: var(--c-text-tertiary);
+  opacity: 0.6;
 }
 </style>

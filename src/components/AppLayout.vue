@@ -3,8 +3,9 @@
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-brand">
-        <div class="brand-icon">
-          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div class="brand-icon" :class="{ 'has-logo': !!brandNavLogo }">
+          <img v-if="brandNavLogo" :src="brandNavLogo" class="sidebar-logo-img" alt="logo" />
+          <svg v-else viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="20" cy="20" r="20" fill="url(#brandGrad)"/>
             <circle cx="20" cy="20" r="18" stroke="white" stroke-opacity="0.15" stroke-width="0.5"/>
             <text x="20" y="23" text-anchor="middle" fill="white" font-family="'Outfit',sans-serif" font-weight="700" font-size="12" letter-spacing="1.5">AX</text>
@@ -19,7 +20,7 @@
           </svg>
         </div>
         <transition name="fade-slide">
-          <span v-show="!sidebarCollapsed" class="brand-text">硕讯科技</span>
+          <span v-show="!sidebarCollapsed" class="brand-text">{{ brandSiteName }}</span>
         </transition>
       </div>
 
@@ -66,6 +67,11 @@
         </el-menu-item>
       </el-menu>
 
+      <!-- Brand info -->
+      <div class="sidebar-info" v-show="!sidebarCollapsed">
+        <div class="sidebar-copy" v-if="brandCopyright">{{ brandCopyright }}</div>
+        <div class="sidebar-version" v-if="brandVersion">{{ brandVersion }}</div>
+      </div>
       <div class="sidebar-footer">
         <el-tooltip :content="sidebarCollapsed ? '展开侧栏' : '收起侧栏'" placement="right">
           <el-button
@@ -95,7 +101,7 @@
           </el-tooltip>
           <el-dropdown trigger="click" @command="handleUserCommand">
             <div class="user-info">
-              <el-avatar :size="34" class="user-avatar">管</el-avatar>
+              <el-avatar :size="34" class="user-avatar" :style="{ background: avatarColor }">{{ avatarText }}</el-avatar>
               <span class="user-name">{{ userName }}</span>
               <el-icon class="user-arrow"><ArrowDown /></el-icon>
             </div>
@@ -128,13 +134,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { api } from "../api.js";
 import { useRoute, useRouter } from "vue-router";
 import { Bell, ArrowDown, Fold, Expand } from "@element-plus/icons-vue";
 
 const route = useRoute();
 const keepAlivePages = ["Exams", "Questions", "Results", "Dashboard", "Users", "Categories", "Logs", "Settings", "Profile"];
 const router = useRouter();
+const brandNavLogo = ref("");
+const brandSiteName = ref("硕讯科技");
+const brandCopyright = ref("");
+const brandVersion = ref("");
 const unreadCount = ref(0);
 const sidebarCollapsed = ref(false);
 
@@ -143,6 +154,23 @@ const userRole = computed(() => {
     const u = JSON.parse(localStorage.getItem("user") || "{}");
     return u.role || "admin";
   } catch(e) { return "admin"; }
+});
+
+const avatarColors = ["#409EFF","#67C23A","#E6A23C","#F56C6C","#909399","#B37FEB","#36CFC9","#F2A6B3"];
+const avatarText = computed(() => {
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    return (u.name || "管")[0];
+  } catch { return "管"; }
+});
+const avatarColor = computed(() => {
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    const name = u.name || "管理员";
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return avatarColors[Math.abs(hash) % avatarColors.length];
+  } catch { return "#409EFF"; }
 });
 
 const userName = computed(() => {
@@ -161,6 +189,11 @@ const routeTitles = {
   Results: "成绩查询",
   ResultDetail: "成绩详情",
   Categories: "分类管理",
+  Users: "用户管理",
+  Logs: "操作日志",
+  Settings: "系统设置",
+  Profile: "个人资料",
+  Notifications: "通知中心"
 };
 
 const pageTitle = computed(() => routeTitles[route.name] || "硕讯科技");
@@ -171,6 +204,19 @@ const activeRoute = computed(() => {
   if (path.startsWith("/questions")) return "/questions";
   return "/dashboard";
 });
+
+async function loadBrand() {
+  try {
+    const res = await api.settings.get();
+    if (res && res.nav_logo_url) {
+      brandNavLogo.value = res.nav_logo_url;
+    }
+    if (res && res.site_name) brandSiteName.value = res.site_name;
+    if (res && res.copyright_text) brandCopyright.value = res.copyright_text;
+    if (res && res.version_text) brandVersion.value = res.version_text;
+  } catch(e) {}
+}
+onMounted(loadBrand);
 
 async function handleBell() {
   try {
@@ -245,10 +291,16 @@ async function loadUnreadCount() {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   background: linear-gradient(135deg, var(--c-primary-light), var(--c-primary));
   border-radius: var(--radius-md);
   color: white;
-  flex-shrink: 0;
+}
+.brand-icon.has-logo {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border-radius: 0;
 }
 .brand-text {
   font-family: var(--font-display);
@@ -291,11 +343,23 @@ async function loadUnreadCount() {
   margin-right: 8px;
 }
 
+.sidebar-info {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.6;
+  flex-shrink: 0;
+  text-align: center;
+}
+.sidebar-copy { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-version { margin-top: 2px; opacity: 0.4; }
 .sidebar-footer {
   padding: 12px;
   border-top: 1px solid var(--c-sidebar-border);
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
 }
 .collapse-btn {
   color: var(--c-sidebar-text);
@@ -430,5 +494,12 @@ async function loadUnreadCount() {
   .content {
     padding: 16px;
   }
+}
+.sidebar-logo-img {
+  max-width: 36px;
+  max-height: 36px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 </style>

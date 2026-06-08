@@ -34,25 +34,23 @@
 
     <!-- Table -->
     <el-table :data="filteredQuestions" stripe style="width: 100%" ref="dataTable" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="40" />
-      <el-table-column label="题型" prop="type" width="70" />
-      <el-table-column label="分类" prop="category" width="100" />
-      <el-table-column label="题目" prop="content" min-width="200" show-overflow-tooltip />
-      <el-table-column label="难度" prop="difficulty" width="70" align="center">
+      <el-table-column type="selection" width="36" />
+      <el-table-column label="题型" prop="type" width="60" />
+      <el-table-column label="分类" prop="category" width="80" />
+      <el-table-column label="题目" prop="content" show-overflow-tooltip />
+      <el-table-column label="难度" prop="difficulty" width="80" align="center">
         <template #default="scope">
           <el-rate v-model="scope.row.difficulty" disabled :max="3" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="分值" prop="score" width="60" align="center" />
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column label="分值" prop="score" width="55" align="center" />
+      <el-table-column label="操作" width="110" align="center">
         <template #default="scope">
-          <el-button text type="primary" size="small" @click="previewQuestion(scope.row)">预览</el-button>
-          <el-button text type="primary" size="small" @click="editQuestion(scope.row)">编辑</el-button>
-          <el-popconfirm title="确定删除？" @confirm="handleDelete(scope.row.id)">
-            <template #reference>
-              <el-button text type="danger" size="small">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <span class="action-group">
+            <el-button text size="small" :icon="View" @click="previewQuestion(scope.row)" title="预览" />
+            <el-button text size="small" :icon="Edit" @click="editQuestion(scope.row)" title="编辑" />
+            <el-button text type="danger" size="small" :icon="Delete" @click="confirmDelete(scope.row.id)" title="删除" />
+          </span>
         </template>
       </el-table-column>
     </el-table>
@@ -177,7 +175,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
-import { Plus, Upload, Download, Search, Delete , InfoFilled, CircleCheck } from "@element-plus/icons-vue";
+import { Plus, Upload, Download, Search, Delete, Edit, View , InfoFilled, CircleCheck } from "@element-plus/icons-vue";
 import { api } from "../api.js";
 import { ElMessage, ElMessageBox } from "element-plus";
 
@@ -265,6 +263,12 @@ async function handleSave() {
   } catch(e) { ElMessage.error("保存失败"); }
 }
 
+async function confirmDelete(id) {
+  try {
+    await ElMessageBox.confirm("确定删除该题目？", "确认删除");
+    await handleDelete(id);
+  } catch(e) {}
+}
 async function handleDelete(id) {
   try { await api.questions.delete(id); ElMessage.success("删除成功"); questions.value = questions.value.filter(q => q.id !== id); } catch(e) { ElMessage.error("删除失败"); }
 }
@@ -395,7 +399,7 @@ async function loadQuestions() {}
 </script>
 
 <style scoped>
-.questions-page { display: flex; flex-direction: column; gap: 16px; }
+.questions-page { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
 .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .toolbar-right { display: flex; gap: 8px; align-items: center; }
@@ -423,4 +427,12 @@ async function loadQuestions() {}
 .preview-answer-label, .preview-explanation-label { font-weight: 600; color: var(--c-text-secondary); }
 .preview-answer-text { color: var(--c-success); font-weight: 600; }
 .preview-explanation-text { font-size: 13px; color: var(--c-text-secondary); line-height: 1.5; }
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.action-group .el-button {
+  margin-left: 0 !important;
+}
 </style>

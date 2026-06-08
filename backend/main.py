@@ -33,8 +33,23 @@ def health():
 dist_path = Path(__file__).parent.parent / "dist"
 if dist_path.exists():
     app.mount("/assets", StaticFiles(directory=str(dist_path / "assets")), name="assets")
-    @app.get("/{full_path:path}")
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
     def serve_spa(full_path: str):
-        if full_path.startswith("api/") or full_path == "" or not (dist_path / "index.html").exists():
+        # Handle uploads - serve static files
+        if full_path.startswith("uploads/"):
+            uploads_dir = Path(__file__).parent / "public" / "uploads"
+            filename = full_path[len("uploads/"):]
+            f = uploads_dir / filename
+            if f.exists() and f.is_file():
+                return FileResponse(str(f))
             return {"status": "not_found"}
-        return FileResponse(str(dist_path / "index.html"))
+        # API routes - skip
+        if full_path.startswith("api/"):
+            return {"status": "not_found"}
+        # SPA
+        idx = dist_path / "index.html"
+        if not idx.exists():
+            return {"status": "not_found"}
+        return FileResponse(str(idx))
+
+
