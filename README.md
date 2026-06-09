@@ -1,4 +1,3 @@
-﻿```markdown
 # AXUS 企业考核管理系统
 
 > 基于 Vue 3 + FastAPI + SQLite 的企业在线考核管理系统
