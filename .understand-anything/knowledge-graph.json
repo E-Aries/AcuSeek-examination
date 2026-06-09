@@ -1,0 +1,2311 @@
+{
+  "version": "2.0.0",
+  "project": {
+    "name": "AXUS 企业考核管理系统",
+    "languages": [
+      "Python",
+      "JavaScript",
+      "Vue",
+      "CSS",
+      "HTML"
+    ],
+    "frameworks": [
+      "Vue 3",
+      "FastAPI",
+      "Element Plus",
+      "SQLAlchemy"
+    ],
+    "description": "基于 Vue 3 + FastAPI 的企业在线考核管理系统",
+    "analyzedAt": "2026-06-09T09:05:15.303206",
+    "gitCommitHash": "5445c4bfbb51c8c1"
+  },
+  "nodes": [
+    {
+      "id": "fe:README.md",
+      "label": "README",
+      "type": "doc",
+      "group": "root",
+      "path": "README.md"
+    },
+    {
+      "id": "fe:_build_kg.py",
+      "label": "_build_kg",
+      "type": "file",
+      "group": "root",
+      "path": "_build_kg.py"
+    },
+    {
+      "id": "fe:_debug.py",
+      "label": "_debug",
+      "type": "file",
+      "group": "root",
+      "path": "_debug.py"
+    },
+    {
+      "id": "fe:_fix_authors.py",
+      "label": "_fix_authors",
+      "type": "file",
+      "group": "root",
+      "path": "_fix_authors.py"
+    },
+    {
+      "id": "fe:_fix_manual.py",
+      "label": "_fix_manual",
+      "type": "file",
+      "group": "root",
+      "path": "_fix_manual.py"
+    },
+    {
+      "id": "fe:_fix_vue.py",
+      "label": "_fix_vue",
+      "type": "file",
+      "group": "root",
+      "path": "_fix_vue.py"
+    },
+    {
+      "id": "fe:_read_exam.py",
+      "label": "_read_exam",
+      "type": "file",
+      "group": "root",
+      "path": "_read_exam.py"
+    },
+    {
+      "id": "fe:_test_mini.py",
+      "label": "_test_mini",
+      "type": "file",
+      "group": "root",
+      "path": "_test_mini.py"
+    },
+    {
+      "id": "be:backend/_fix_bugs.py",
+      "label": "_fix_bugs",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/_fix_bugs.py"
+    },
+    {
+      "id": "be:backend/_fix_dup.py",
+      "label": "_fix_dup",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/_fix_dup.py"
+    },
+    {
+      "id": "be:backend/_fix_roles.py",
+      "label": "_fix_roles",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/_fix_roles.py"
+    },
+    {
+      "id": "be:backend/_fix_users_backend.py",
+      "label": "_fix_users_backend",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/_fix_users_backend.py"
+    },
+    {
+      "id": "be:backend/config.py",
+      "label": "config",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/config.py"
+    },
+    {
+      "id": "be:backend/database.py",
+      "label": "database",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/database.py"
+    },
+    {
+      "id": "be:backend/main.py",
+      "label": "main",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/main.py"
+    },
+    {
+      "id": "be:backend/models.py",
+      "label": "models",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/models.py"
+    },
+    {
+      "id": "be:backend/routers/__init__.py",
+      "label": "__init__",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/__init__.py"
+    },
+    {
+      "id": "be:backend/routers/_profile_schema.py",
+      "label": "_profile_schema",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/_profile_schema.py"
+    },
+    {
+      "id": "be:backend/routers/answers.py",
+      "label": "answers",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/answers.py"
+    },
+    {
+      "id": "be:backend/routers/auth.py",
+      "label": "auth",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/auth.py"
+    },
+    {
+      "id": "be:backend/routers/categories.py",
+      "label": "categories",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/categories.py"
+    },
+    {
+      "id": "be:backend/routers/dashboard.py",
+      "label": "dashboard",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/dashboard.py"
+    },
+    {
+      "id": "be:backend/routers/exams.py",
+      "label": "exams",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/exams.py"
+    },
+    {
+      "id": "be:backend/routers/logs.py",
+      "label": "logs",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/logs.py"
+    },
+    {
+      "id": "be:backend/routers/notifications.py",
+      "label": "notifications",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/notifications.py"
+    },
+    {
+      "id": "be:backend/routers/questions.py",
+      "label": "questions",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/questions.py"
+    },
+    {
+      "id": "be:backend/routers/results.py",
+      "label": "results",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/results.py"
+    },
+    {
+      "id": "be:backend/routers/settings.py",
+      "label": "settings",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/settings.py"
+    },
+    {
+      "id": "be:backend/routers/users.py",
+      "label": "users",
+      "type": "api",
+      "group": "backend",
+      "path": "backend/routers/users.py"
+    },
+    {
+      "id": "be:backend/schemas.py",
+      "label": "schemas",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/schemas.py"
+    },
+    {
+      "id": "be:backend/seed.py",
+      "label": "seed",
+      "type": "backend",
+      "group": "backend",
+      "path": "backend/seed.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/README.md",
+      "label": "README",
+      "type": "doc",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/README.md"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/config.py",
+      "label": "config",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/config.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/database.py",
+      "label": "database",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/database.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/main.py",
+      "label": "main",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/main.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/models.py",
+      "label": "models",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/models.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/__init__.py",
+      "label": "__init__",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/__init__.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/answers.py",
+      "label": "answers",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/answers.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/auth.py",
+      "label": "auth",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/auth.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/categories.py",
+      "label": "categories",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/categories.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/dashboard.py",
+      "label": "dashboard",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/dashboard.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/exams.py",
+      "label": "exams",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/exams.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/questions.py",
+      "label": "questions",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/questions.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/results.py",
+      "label": "results",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/results.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/routers/users.py",
+      "label": "users",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/routers/users.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/schemas.py",
+      "label": "schemas",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/schemas.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/backend/seed.py",
+      "label": "seed",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/backend/seed.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/index.html",
+      "label": "index",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/index.html"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/package-lock.json",
+      "label": "package-lock",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/package-lock.json"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/package.json",
+      "label": "package",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/package.json"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/App.vue",
+      "label": "App",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/App.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/api.js",
+      "label": "api",
+      "type": "entry",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/api.js"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/components/AppLayout.vue",
+      "label": "AppLayout",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/components/AppLayout.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/components/HelloWorld.vue",
+      "label": "HelloWorld",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/components/HelloWorld.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/main.js",
+      "label": "main",
+      "type": "entry",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/main.js"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/router/index.js",
+      "label": "index",
+      "type": "router",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/router/index.js"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/style.css",
+      "label": "style",
+      "type": "style",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/style.css"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/styles/variables.css",
+      "label": "variables",
+      "type": "style",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/styles/variables.css"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Categories.vue",
+      "label": "Categories",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Categories.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "label": "Dashboard",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Dashboard.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "label": "ExamDetail",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/ExamDetail.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "label": "Exams",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Exams.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Login.vue",
+      "label": "Login",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Login.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "label": "Questions",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Questions.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "label": "ResultDetail",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/ResultDetail.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Results.vue",
+      "label": "Results",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Results.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "label": "TakeExam",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/TakeExam.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/src/views/Users.vue",
+      "label": "Users",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/src/views/Users.vue"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/start.bat",
+      "label": "start",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/start.bat"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/start_vite.vbs",
+      "label": "start_vite",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/start_vite.vbs"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/update_frontend.py",
+      "label": "update_frontend",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/update_frontend.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/update_frontend2.py",
+      "label": "update_frontend2",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/update_frontend2.py"
+    },
+    {
+      "id": "fe:examination_backup_20260604_221845/vite.config.js",
+      "label": "vite.config",
+      "type": "file",
+      "group": "root",
+      "path": "examination_backup_20260604_221845/vite.config.js"
+    },
+    {
+      "id": "fe:index.html",
+      "label": "index",
+      "type": "file",
+      "group": "root",
+      "path": "index.html"
+    },
+    {
+      "id": "fe:package-lock.json",
+      "label": "package-lock",
+      "type": "file",
+      "group": "root",
+      "path": "package-lock.json"
+    },
+    {
+      "id": "fe:package.json",
+      "label": "package",
+      "type": "file",
+      "group": "root",
+      "path": "package.json"
+    },
+    {
+      "id": "fe:src/App.vue",
+      "label": "App",
+      "type": "file",
+      "group": "frontend",
+      "path": "src/App.vue"
+    },
+    {
+      "id": "fe:src/api.js",
+      "label": "api",
+      "type": "entry",
+      "group": "frontend",
+      "path": "src/api.js"
+    },
+    {
+      "id": "fe:src/components/AppLayout.vue",
+      "label": "AppLayout",
+      "type": "component",
+      "group": "frontend",
+      "path": "src/components/AppLayout.vue"
+    },
+    {
+      "id": "fe:src/components/HelloWorld.vue",
+      "label": "HelloWorld",
+      "type": "component",
+      "group": "frontend",
+      "path": "src/components/HelloWorld.vue"
+    },
+    {
+      "id": "fe:src/main.js",
+      "label": "main",
+      "type": "entry",
+      "group": "frontend",
+      "path": "src/main.js"
+    },
+    {
+      "id": "fe:src/router/index.js",
+      "label": "index",
+      "type": "router",
+      "group": "frontend",
+      "path": "src/router/index.js"
+    },
+    {
+      "id": "fe:src/style.css",
+      "label": "style",
+      "type": "style",
+      "group": "frontend",
+      "path": "src/style.css"
+    },
+    {
+      "id": "fe:src/styles/variables.css",
+      "label": "variables",
+      "type": "style",
+      "group": "frontend",
+      "path": "src/styles/variables.css"
+    },
+    {
+      "id": "fe:src/views/Categories.vue",
+      "label": "Categories",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Categories.vue"
+    },
+    {
+      "id": "fe:src/views/Dashboard.vue",
+      "label": "Dashboard",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Dashboard.vue"
+    },
+    {
+      "id": "fe:src/views/ExamDetail.vue",
+      "label": "ExamDetail",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/ExamDetail.vue"
+    },
+    {
+      "id": "fe:src/views/Exams.vue",
+      "label": "Exams",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Exams.vue"
+    },
+    {
+      "id": "fe:src/views/Login.vue",
+      "label": "Login",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Login.vue"
+    },
+    {
+      "id": "fe:src/views/Logs.vue",
+      "label": "Logs",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Logs.vue"
+    },
+    {
+      "id": "fe:src/views/Mistakes.vue",
+      "label": "Mistakes",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Mistakes.vue"
+    },
+    {
+      "id": "fe:src/views/Profile.vue",
+      "label": "Profile",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Profile.vue"
+    },
+    {
+      "id": "fe:src/views/Questions.vue",
+      "label": "Questions",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Questions.vue"
+    },
+    {
+      "id": "fe:src/views/ResultDetail.vue",
+      "label": "ResultDetail",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/ResultDetail.vue"
+    },
+    {
+      "id": "fe:src/views/Results.vue",
+      "label": "Results",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Results.vue"
+    },
+    {
+      "id": "fe:src/views/Settings.vue",
+      "label": "Settings",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Settings.vue"
+    },
+    {
+      "id": "fe:src/views/TakeExam.vue",
+      "label": "TakeExam",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/TakeExam.vue"
+    },
+    {
+      "id": "fe:src/views/Users.vue",
+      "label": "Users",
+      "type": "view",
+      "group": "frontend",
+      "path": "src/views/Users.vue"
+    },
+    {
+      "id": "fe:start.bat",
+      "label": "start",
+      "type": "file",
+      "group": "root",
+      "path": "start.bat"
+    },
+    {
+      "id": "fe:start_vite.vbs",
+      "label": "start_vite",
+      "type": "file",
+      "group": "root",
+      "path": "start_vite.vbs"
+    },
+    {
+      "id": "fe:summary.md",
+      "label": "summary",
+      "type": "doc",
+      "group": "root",
+      "path": "summary.md"
+    },
+    {
+      "id": "fe:update_frontend.py",
+      "label": "update_frontend",
+      "type": "file",
+      "group": "root",
+      "path": "update_frontend.py"
+    },
+    {
+      "id": "fe:update_frontend2.py",
+      "label": "update_frontend2",
+      "type": "file",
+      "group": "root",
+      "path": "update_frontend2.py"
+    },
+    {
+      "id": "fe:vite.config.js",
+      "label": "vite.config",
+      "type": "file",
+      "group": "root",
+      "path": "vite.config.js"
+    },
+    {
+      "id": "frontend",
+      "label": "Frontend",
+      "type": "layer",
+      "group": "layers",
+      "description": "Frontend (Vue 3 + Element Plus)"
+    },
+    {
+      "id": "backend",
+      "label": "Backend",
+      "type": "layer",
+      "group": "layers",
+      "description": "Backend (FastAPI)"
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "type": "layer",
+      "group": "layers",
+      "description": "Database (SQLite)"
+    },
+    {
+      "id": "root",
+      "label": "Root",
+      "type": "layer",
+      "group": "layers",
+      "description": "Project Root"
+    },
+    {
+      "id": "feature:login",
+      "label": "登录注册",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:dashboard",
+      "label": "仪表盘",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:questions",
+      "label": "题库管理",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:exams",
+      "label": "考核管理",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:exam_take",
+      "label": "考试答题",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:results",
+      "label": "成绩查询",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:settings",
+      "label": "系统设置",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:users",
+      "label": "用户管理",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:categories",
+      "label": "分类管理",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:logs",
+      "label": "操作日志",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:profile",
+      "label": "个人资料",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "feature:mistakes",
+      "label": "错题集",
+      "type": "feature",
+      "group": "features"
+    },
+    {
+      "id": "role:admin",
+      "label": "管理员",
+      "type": "role",
+      "group": "roles"
+    },
+    {
+      "id": "role:candidate",
+      "label": "考生",
+      "type": "role",
+      "group": "roles"
+    },
+    {
+      "id": "api:auth",
+      "label": "用户认证",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:questions",
+      "label": "题库管理",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:exams",
+      "label": "考核管理",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:answers",
+      "label": "答题评分",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:results",
+      "label": "成绩查询",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:users",
+      "label": "用户管理",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:categories",
+      "label": "分类管理",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:dashboard",
+      "label": "仪表盘",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:settings",
+      "label": "系统设置",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:logs",
+      "label": "操作日志",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "api:notifications",
+      "label": "通知管理",
+      "type": "api",
+      "group": "api"
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "type": "layer",
+      "group": "layers",
+      "description": "SQLite Database"
+    }
+  ],
+  "edges": [
+    {
+      "source": "fe:examination_backup_20260604_221845/src/main.js",
+      "target": "fe:examination_backup_20260604_221845/src/App.vue",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/router/index.js",
+      "target": "fe:examination_backup_20260604_221845/src/components/AppLayout.vue",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Categories.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Login.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Results.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/components/AppLayout.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/main.js",
+      "target": "fe:src/App.vue",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/router/index.js",
+      "target": "fe:src/components/AppLayout.vue",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Categories.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Dashboard.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/ExamDetail.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Login.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Logs.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Mistakes.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Profile.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Questions.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/ResultDetail.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/Results.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "fe:src/views/TakeExam.vue",
+      "target": "fe:src/api.js",
+      "relation": "imports"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/App.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/api.js",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/components/AppLayout.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/components/HelloWorld.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/main.js",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/router/index.js",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/style.css",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/styles/variables.css",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Categories.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Dashboard.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/ExamDetail.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Exams.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Login.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Logs.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Mistakes.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Profile.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Questions.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/ResultDetail.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Results.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Settings.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/TakeExam.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "frontend",
+      "target": "fe:src/views/Users.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/_fix_bugs.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/_fix_dup.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/_fix_roles.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/_fix_users_backend.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/config.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/database.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/main.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/models.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/__init__.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/_profile_schema.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/answers.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/auth.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/categories.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/dashboard.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/exams.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/logs.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/notifications.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/questions.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/results.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/settings.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/routers/users.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/schemas.py",
+      "relation": "contains"
+    },
+    {
+      "source": "backend",
+      "target": "be:backend/seed.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:README.md",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_build_kg.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_debug.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_fix_authors.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_fix_manual.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_fix_vue.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_read_exam.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:_test_mini.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/README.md",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/config.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/database.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/main.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/models.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/__init__.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/answers.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/auth.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/categories.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/dashboard.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/exams.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/questions.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/results.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/routers/users.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/schemas.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/backend/seed.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/index.html",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/package-lock.json",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/package.json",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/App.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/api.js",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/components/AppLayout.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/components/HelloWorld.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/main.js",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/router/index.js",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/style.css",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/styles/variables.css",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Categories.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Login.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Results.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/src/views/Users.vue",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/start.bat",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/start_vite.vbs",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/update_frontend.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/update_frontend2.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:examination_backup_20260604_221845/vite.config.js",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:index.html",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:package-lock.json",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:package.json",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:start.bat",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:start_vite.vbs",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:summary.md",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:update_frontend.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:update_frontend2.py",
+      "relation": "contains"
+    },
+    {
+      "source": "root",
+      "target": "fe:vite.config.js",
+      "relation": "contains"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Categories.vue",
+      "target": "feature:categories",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Categories.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "target": "feature:dashboard",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "target": "feature:exams",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "feature:exams",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Login.vue",
+      "target": "feature:login",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Login.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "target": "feature:questions",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "target": "feature:results",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Results.vue",
+      "target": "feature:results",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Results.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "target": "feature:exam_take",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Users.vue",
+      "target": "feature:users",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Users.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Categories.vue",
+      "target": "feature:categories",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Categories.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Dashboard.vue",
+      "target": "feature:dashboard",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Dashboard.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/ExamDetail.vue",
+      "target": "feature:exams",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/ExamDetail.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "feature:exams",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Login.vue",
+      "target": "feature:login",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Login.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Logs.vue",
+      "target": "feature:logs",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Logs.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Mistakes.vue",
+      "target": "feature:mistakes",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Mistakes.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Profile.vue",
+      "target": "feature:profile",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Profile.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Questions.vue",
+      "target": "feature:questions",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Questions.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/ResultDetail.vue",
+      "target": "feature:results",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/ResultDetail.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Results.vue",
+      "target": "feature:results",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Results.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Settings.vue",
+      "target": "feature:settings",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Settings.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/TakeExam.vue",
+      "target": "feature:exam_take",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/TakeExam.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:src/views/Users.vue",
+      "target": "feature:users",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "fe:src/views/Users.vue",
+      "target": "role:admin",
+      "relation": "accessible_by"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Categories.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Dashboard.vue",
+      "target": "be:backend/routers/dashboard.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ExamDetail.vue",
+      "target": "be:backend/routers/answers.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Exams.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Login.vue",
+      "target": "be:backend/routers/auth.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Questions.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/ResultDetail.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/Results.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:examination_backup_20260604_221845/src/views/TakeExam.vue",
+      "target": "be:backend/routers/answers.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/components/AppLayout.vue",
+      "target": "be:backend/routers/settings.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/components/AppLayout.vue",
+      "target": "be:backend/routers/notifications.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Categories.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Dashboard.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Dashboard.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Dashboard.vue",
+      "target": "be:backend/routers/dashboard.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/ExamDetail.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/ExamDetail.vue",
+      "target": "be:backend/routers/answers.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/ExamDetail.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Exams.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Login.vue",
+      "target": "be:backend/routers/settings.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Login.vue",
+      "target": "be:backend/routers/auth.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Logs.vue",
+      "target": "be:backend/routers/logs.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Mistakes.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Mistakes.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Profile.vue",
+      "target": "be:backend/routers/auth.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Questions.vue",
+      "target": "be:backend/routers/categories.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Questions.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/ResultDetail.vue",
+      "target": "be:backend/routers/questions.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/ResultDetail.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/ResultDetail.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/Results.vue",
+      "target": "be:backend/routers/results.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/TakeExam.vue",
+      "target": "be:backend/routers/exams.py",
+      "relation": "calls"
+    },
+    {
+      "source": "fe:src/views/TakeExam.vue",
+      "target": "be:backend/routers/answers.py",
+      "relation": "calls"
+    },
+    {
+      "source": "be:backend/routers/__init__.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/_profile_schema.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/answers.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/auth.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/categories.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/dashboard.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/exams.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/logs.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/notifications.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/questions.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/results.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/settings.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "be:backend/routers/users.py",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:auth",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:auth",
+      "target": "be:backend/routers/auth.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:questions",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:questions",
+      "target": "be:backend/routers/questions.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:exams",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:exams",
+      "target": "be:backend/routers/exams.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:answers",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:answers",
+      "target": "be:backend/routers/answers.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:results",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:results",
+      "target": "be:backend/routers/results.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:users",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:users",
+      "target": "be:backend/routers/users.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:categories",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:categories",
+      "target": "be:backend/routers/categories.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:dashboard",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:dashboard",
+      "target": "be:backend/routers/dashboard.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:settings",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:settings",
+      "target": "be:backend/routers/settings.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:logs",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:logs",
+      "target": "be:backend/routers/logs.py",
+      "relation": "implements"
+    },
+    {
+      "source": "api:notifications",
+      "target": "backend",
+      "relation": "belongs_to"
+    },
+    {
+      "source": "api:notifications",
+      "target": "be:backend/routers/notifications.py",
+      "relation": "implements"
+    },
+    {
+      "source": "backend",
+      "target": "database",
+      "relation": "connects_to"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:frontend",
+      "name": "Frontend",
+      "description": "Vue 3 前端",
+      "nodeIds": [
+        "fe:src/App.vue",
+        "fe:src/api.js",
+        "fe:src/components/AppLayout.vue",
+        "fe:src/components/HelloWorld.vue",
+        "fe:src/main.js",
+        "fe:src/router/index.js",
+        "fe:src/style.css",
+        "fe:src/styles/variables.css",
+        "fe:src/views/Categories.vue",
+        "fe:src/views/Dashboard.vue",
+        "fe:src/views/ExamDetail.vue",
+        "fe:src/views/Exams.vue",
+        "fe:src/views/Login.vue",
+        "fe:src/views/Logs.vue",
+        "fe:src/views/Mistakes.vue",
+        "fe:src/views/Profile.vue",
+        "fe:src/views/Questions.vue",
+        "fe:src/views/ResultDetail.vue",
+        "fe:src/views/Results.vue",
+        "fe:src/views/Settings.vue",
+        "fe:src/views/TakeExam.vue",
+        "fe:src/views/Users.vue"
+      ]
+    },
+    {
+      "id": "layer:backend",
+      "name": "Backend",
+      "description": "FastAPI 后端",
+      "nodeIds": [
+        "be:backend/_fix_bugs.py",
+        "be:backend/_fix_dup.py",
+        "be:backend/_fix_roles.py",
+        "be:backend/_fix_users_backend.py",
+        "be:backend/config.py",
+        "be:backend/database.py",
+        "be:backend/main.py",
+        "be:backend/models.py",
+        "be:backend/routers/__init__.py",
+        "be:backend/routers/_profile_schema.py",
+        "be:backend/routers/answers.py",
+        "be:backend/routers/auth.py",
+        "be:backend/routers/categories.py",
+        "be:backend/routers/dashboard.py",
+        "be:backend/routers/exams.py",
+        "be:backend/routers/logs.py",
+        "be:backend/routers/notifications.py",
+        "be:backend/routers/questions.py",
+        "be:backend/routers/results.py",
+        "be:backend/routers/settings.py",
+        "be:backend/routers/users.py",
+        "be:backend/schemas.py",
+        "be:backend/seed.py"
+      ]
+    },
+    {
+      "id": "layer:database",
+      "name": "Database",
+      "description": "SQLite 数据库",
+      "nodeIds": [
+        "database",
+        "backend/routers/results.py",
+        "backend/routers/exams.py",
+        "backend/models.py"
+      ]
+    }
+  ]
+}
