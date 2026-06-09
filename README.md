@@ -1,4 +1,4 @@
-# AXUS 企业考核管理系统
+﻿# AXUS 企业考核管理系统
 
 > 基于 Vue 3 + FastAPI + SQLite 的企业在线考核管理系统
 
@@ -252,10 +252,10 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 请包含：问题描述、复现步骤、预期与实际行为、环境信息。
 
 ---
+## 联系我们
+<img src="screenshots/联系我们.jpg" width="400" />
 
-![联系我们](screenshots/联系我们.jpg)
-
-![联系我们](screenshots/联系我们2.jpg)
+<img src="screenshots/联系我们2.jpg" width="400" />
 
 ## 许可证
 
@@ -713,3 +713,4 @@ Copyright (c) 2026 达咩
 | GET | /api/dashboard | 仪表盘数据 |
 | GET | /api/logs | 操作日志 |
 ```
+
