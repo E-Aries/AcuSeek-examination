@@ -13,19 +13,6 @@
         <div class="brand-content">
           <div class="brand-icon-large">
             <img v-if="brandLogo" :src="brandLogo" class="brand-logo-img" alt="logo" />
-            <svg v-else viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" class="axus-logo">
-              <circle cx="36" cy="36" r="36" fill="url(#loginBrandGrad)"/>
-              <circle cx="36" cy="36" r="33" stroke="white" stroke-opacity="0.12" stroke-width="0.8"/>
-              <text x="36" y="41" text-anchor="middle" fill="white" font-family="'Outfit',sans-serif" font-weight="700" font-size="22" letter-spacing="2">AX</text>
-              <line x1="22" y1="50" x2="50" y2="50" stroke="white" stroke-opacity="0.3" stroke-width="2" stroke-linecap="round"/>
-              <text x="36" y="60" text-anchor="middle" fill="white" font-family="'Outfit',sans-serif" font-weight="500" font-size="9" letter-spacing="2" opacity="0.6">EST. 2024</text>
-              <defs>
-                <linearGradient id="loginBrandGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#0A6E73"/>
-                  <stop offset="100%" stop-color="#043638"/>
-                </linearGradient>
-              </defs>
-            </svg>
           </div>
           <h1 class="brand-title">{{ brandName }}</h1>
           <p class="brand-subtitle">{{ brandSubtitle }}</p>
@@ -140,7 +127,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from "vue"
-import { api } from "../api.js";
+import { api } from "../api.js"
+import loginLogoDefault from "../images/Login_Logo.png";
 import { useRouter } from "vue-router";
 import { User, Lock, Edit, Select, Coin, DataBoard } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
@@ -196,9 +184,9 @@ async function handleRegister() {
     registerLoading.value = false;
   });
 }
-const brandName = ref("AXUS")
+const brandName = ref("")
 const brandSubtitle = ref("")
-const brandLogo = ref("")
+const brandLogo = ref(loginLogoDefault)
 const brandVersion = ref("")
 const brandCopyright = ref("")
 const brandDesc = ref("企业考核管理系统\n高效 · 公正 · 智能")
@@ -327,6 +315,9 @@ async function handleLogin() {
   width: 64px;
   height: 64px;
   margin-bottom: 20px;
+}
+.brand-icon-large {
+  margin: 0 auto 20px;
 }
 .brand-title {
   font-family: var(--font-display);

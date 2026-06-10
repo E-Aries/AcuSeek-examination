@@ -4,20 +4,7 @@
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-brand">
         <div class="brand-icon" :class="{ 'has-logo': !!brandNavLogo }">
-          <img v-if="brandNavLogo" :src="brandNavLogo" class="sidebar-logo-img" alt="logo" />
-          <svg v-else viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="20" cy="20" r="20" fill="url(#brandGrad)"/>
-            <circle cx="20" cy="20" r="18" stroke="white" stroke-opacity="0.15" stroke-width="0.5"/>
-            <text x="20" y="23" text-anchor="middle" fill="white" font-family="'Outfit',sans-serif" font-weight="700" font-size="12" letter-spacing="1.5">AX</text>
-            <line x1="13" y1="28" x2="27" y2="28" stroke="white" stroke-opacity="0.4" stroke-width="1.5" stroke-linecap="round"/>
-            <text x="20" y="34" text-anchor="middle" fill="white" font-family="'Outfit',sans-serif" font-weight="500" font-size="5" letter-spacing="1">EST.</text>
-            <defs>
-              <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#0A6E73"/>
-                <stop offset="100%" stop-color="#064244"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <img v-if="brandNavLogo" :src="brandNavLogo" style="height: auto; width: 100%; max-height: 160px; object-fit: contain;" class="sidebar-logo-img" alt="logo" />
         </div>
         <transition name="fade-slide">
           <span v-show="!sidebarCollapsed" class="brand-text">{{ brandSiteName }}</span>
@@ -135,15 +122,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { api } from "../api.js";
+import { api } from "../api.js"
+import navLogoDefault from "../images/Nav_Logo.png";
 import { useRoute, useRouter } from "vue-router";
 import { Bell, ArrowDown, Fold, Expand } from "@element-plus/icons-vue";
 
 const route = useRoute();
 const keepAlivePages = ["Exams", "Questions", "Results", "Dashboard", "Users", "Categories", "Logs", "Settings", "Profile"];
 const router = useRouter();
-const brandNavLogo = ref("");
-const brandSiteName = ref("硕讯科技");
+const brandNavLogo = ref(navLogoDefault);
+const brandSiteName = ref("");
 const brandCopyright = ref("");
 const brandVersion = ref("");
 const unreadCount = ref(0);
@@ -196,7 +184,7 @@ const routeTitles = {
   Notifications: "通知中心"
 };
 
-const pageTitle = computed(() => routeTitles[route.name] || "硕讯科技");
+const pageTitle = computed(() => routeTitles[route.name] || "");
 const activeRoute = computed(() => {
   const path = route.path;
   if (path.startsWith("/exams")) return "/exams";

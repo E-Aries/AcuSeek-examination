@@ -4,6 +4,9 @@ from sqlalchemy import func
 from database import get_db
 from models import Question
 from schemas import QuestionCreate, QuestionUpdate
+from logger import log_action
+from starlette.requests import Request
+from .auth import get_current_user
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
 
@@ -18,26 +21,30 @@ def list_questions(type: str = "", category: str = "", search: str = "", page: i
     return {"total": total, "items": [{"id": q.id, "type": q.type, "category": q.category, "content": q.content, "options": q.options, "answer": q.answer, "explanation": q.explanation, "difficulty": q.difficulty, "score": q.score, "used_count": q.used_count} for q in items]}
 
 @router.post("")
-def create_question(data: QuestionCreate, db = Depends(get_db)):
+def create_question(data: QuestionCreate, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     q = Question(**data.model_dump())
+    log_action(db, user.username, "创建题目", data.content[:20] if data.content else "", "", ip=request.client.host or "" if request.client else "")
     db.add(q)
     db.commit()
     db.refresh(q)
     return {"id": q.id, "message": "创建成功"}
 
 @router.put("/{qid}")
-def update_question(qid: int, data: QuestionUpdate, db = Depends(get_db)):
+def update_question(qid: int, data: QuestionUpdate, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     q = db.query(Question).filter(Question.id == qid).first()
     if not q: raise HTTPException(status_code=404, detail="题目不存在")
     for k, v in data.model_dump(exclude_unset=True).items():
         setattr(q, k, v)
+    log_action(db, user.username, "修改题目", str(qid), "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"message": "更新成功"}
 
 @router.delete("/{qid}")
-def delete_question(qid: int, db = Depends(get_db)):
+def delete_question(qid: int, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     q = db.query(Question).filter(Question.id == qid).first()
     if not q: raise HTTPException(status_code=404, detail="题目不存在")
+    ip_addr = request.client.host or "" if request.client else ""
+    log_action(db, user.username, "删除题目", str(qid), "", ip=ip_addr)
     db.delete(q)
     db.commit()
     return {"message": "删除成功"}
@@ -52,7 +59,7 @@ import openpyxl, io, json
 from fastapi import UploadFile, File
 
 @router.post("/import")
-def import_questions(file: UploadFile = File(...), db = Depends(get_db)):
+def import_questions(request: Request, file: UploadFile = File(...), user = Depends(get_current_user), db = Depends(get_db)):
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
     content = file.file.read()
     questions = []
@@ -113,6 +120,7 @@ def import_questions(file: UploadFile = File(...), db = Depends(get_db)):
             questions.append(q)
     else:
         raise HTTPException(status_code=400, detail="仅支持 .xlsx/.xls 和 .csv 格式")
+    log_action(db, user.username, "导入题目", f"{len(questions)}道", "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"count": len(questions), "message": f"成功导入 {len(questions)} 道题目"}
 
@@ -122,17 +130,18 @@ def get_categories(db = Depends(get_db)):
     return {"items": [c[0] for c in cats if c[0]]}
 
 @router.post("/batch-delete")
-def batch_delete_questions(data: dict, db = Depends(get_db)):
+def batch_delete_questions(data: dict, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     ids = data.get("ids", [])
     if not ids:
         raise HTTPException(status_code=400, detail="请选择要删除的题目")
     deleted = db.query(Question).filter(Question.id.in_(ids)).delete(synchronize_session=False)
+    log_action(db, user.username, "批量删除题目", f"{deleted}道", "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"deleted": deleted, "message": f"成功删除 {deleted} 道题目"}
 
 
 @router.post("/batch-export")
-def batch_export_questions(data: dict, db = Depends(get_db)):
+def batch_export_questions(data: dict, user = Depends(get_current_user), db = Depends(get_db)):
     import json, csv, io
     from fastapi.responses import StreamingResponse
     ids = data.get("ids", [])
@@ -149,11 +158,12 @@ def batch_export_questions(data: dict, db = Depends(get_db)):
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=questions_export.csv"})
 
 @router.put("/batch-category")
-def batch_update_category(data: dict, db = Depends(get_db)):
+def batch_update_category(data: dict, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     ids = data.get("ids", [])
     category = data.get("category", "")
     if not ids or not category:
         raise HTTPException(status_code=400, detail="请选择题目并提供分类")
     db.query(Question).filter(Question.id.in_(ids)).update({"category": category}, synchronize_session=False)
+    log_action(db, user.username, "批量修改分类", f"{len(ids)}道->{category}", "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"message": f"成功更新 {len(ids)} 道题目的分类"}

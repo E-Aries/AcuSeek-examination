@@ -4,6 +4,8 @@ from database import get_db
 from sqlalchemy import func
 from models import Exam, Question, ExamPaper, User
 from schemas import ExamCreate, ExamUpdate
+from logger import log_action
+from starlette.requests import Request
 from .auth import get_current_user
 import random
 
@@ -40,8 +42,9 @@ def list_exams(status: str = "", search: str = "", user = Depends(get_current_us
     return {"items": result}
 
 @router.post("")
-def create_exam(data: ExamCreate, db = Depends(get_db)):
+def create_exam(data: ExamCreate, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     exam = Exam(**data.model_dump(), status="未开始")
+    log_action(db, user.username, "创建考核", data.name, "", ip=request.client.host or "" if request.client else "")
     db.add(exam)
     db.commit()
     db.refresh(exam)
@@ -54,7 +57,7 @@ def get_exam(eid: int, db = Depends(get_db)):
     return exam
 
 @router.post("/{eid}/start")
-def start_exam(eid: int, mode: str = "", user = Depends(get_current_user), db = Depends(get_db)):
+def start_exam(eid: int, request: Request, mode: str = "", user = Depends(get_current_user), db = Depends(get_db)):
     existing = db.query(ExamPaper).filter(ExamPaper.exam_id == eid, ExamPaper.user_id == user.id).first()
     exam = db.query(Exam).filter(Exam.id == eid).first()
     if not exam:
@@ -90,6 +93,7 @@ def start_exam(eid: int, mode: str = "", user = Depends(get_current_user), db = 
     else:
         snapshot = [{"id": q.id, "type": q.type, "content": q.content, "options": q.options, "score": q.score} for q in selected]
     paper = ExamPaper(exam_id=eid, user_id=user.id, questions=snapshot)
+    log_action(db, user.username, "参加考核", f"考核#{eid}", "", ip=request.client.host or "" if request.client else "")
     db.add(paper)
     db.commit()
     db.refresh(paper)
@@ -156,7 +160,7 @@ def export_exam_papers(eid: int, db = Depends(get_db)):
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={filename}"})
 
 @router.put("/{eid}")
-def update_exam(eid: int, data: dict, db = Depends(get_db)):
+def update_exam(eid: int, data: dict, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     exam = db.query(Exam).filter(Exam.id == eid).first()
     if not exam: raise HTTPException(status_code=404, detail="考试不存在")
     # Handle questions_preview specially - save to ExamPaper
@@ -174,6 +178,7 @@ def update_exam(eid: int, data: dict, db = Depends(get_db)):
     for k, v in data.items():
         if hasattr(exam, k):
             setattr(exam, k, v)
+    log_action(db, user.username, "修改考核", data.get("name", str(eid)), "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"message": "更新成功"}
 
@@ -186,7 +191,7 @@ def get_paper_detail(pid: int, db = Depends(get_db)):
 
 
 @router.post("/{eid}/retake/{uid}")
-def retake_exam(eid: int, uid: int, user = Depends(get_current_user), db = Depends(get_db)):
+def retake_exam(eid: int, uid: int, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     """Admin allows a candidate to retake an exam (reset their paper)"""
     if user.role != "admin":
         raise HTTPException(status_code=403, detail="仅管理员可以操作")
@@ -201,6 +206,8 @@ def retake_exam(eid: int, uid: int, user = Depends(get_current_user), db = Depen
     paper.answers = None
     paper.submitted_at = None
     paper.duration_used = None
+    db.commit()
+    log_action(db, user.username, "补考", f"考核#{eid} 用户#{uid}", "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"message": "补考已允许，考生可以重新考试"}
 
@@ -217,10 +224,11 @@ def discard_paper(paper_id: int, user = Depends(get_current_user), db = Depends(
     return {"message": "试卷已放弃"}
 
 @router.delete("/{eid}")
-def delete_exam(eid: int, db = Depends(get_db)):
+def delete_exam(eid: int, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
     exam = db.query(Exam).filter(Exam.id == eid).first()
     if not exam: raise HTTPException(status_code=404, detail="考试不存在")
     db.query(ExamPaper).filter(ExamPaper.exam_id == eid).delete()
+    log_action(db, user.username, "删除考核", exam.name, "", ip=request.client.host or "" if request.client else "")
     db.delete(exam)
     db.commit()
     return {"message": "删除成功"}

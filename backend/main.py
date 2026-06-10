@@ -8,7 +8,7 @@ from routers import auth, questions, exams, answers, results, users, dashboard, 
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="AXUS \u4f01\u4e1a\u8003\u6838\u7cfb\u7edf")
+app = FastAPI(title=" \u4f01\u4e1a\u8003\u6838\u7cfb\u7edf")
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
@@ -27,7 +27,7 @@ app.include_router(notifications.router)
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "app": "AXUS \u4f01\u4e1a\u8003\u6838\u7cfb\u7edf"}
+    return {"status": "ok", "app": " \u4f01\u4e1a\u8003\u6838\u7cfb\u7edf"}
 
 # SPA \u9759\u6001\u6587\u4ef6\u6258\u7ba1\uff08\u6784\u5efa\u540e\u7528 npm run build \u751f\u6210 dist\uff09
 dist_path = Path(__file__).parent.parent / "dist"

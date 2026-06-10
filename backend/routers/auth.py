@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
+from starlette.requests import Request
+from logger import log_action
 from datetime import datetime, timedelta, timezone
 from database import get_db
 from models import User
@@ -42,7 +44,7 @@ def _hash_pw(pw):
     return salt + ":" + h
 
 @router.post("/login", response_model=TokenResponse)
-def login(req: LoginRequest, db = Depends(get_db)):
+def login(req: LoginRequest, request: Request, db = Depends(get_db)):
     user = db.query(User).filter(User.username == req.username).first()
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=401, detail="用户名或密码错误")
@@ -51,6 +53,8 @@ def login(req: LoginRequest, db = Depends(get_db)):
         "role": user.role,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
     }, SECRET_KEY, algorithm=ALGORITHM)
+    log_action(db, user.username, "登录系统", "", "", ip=request.client.host or "" if request.client else "")
+    db.commit()
     return TokenResponse(
         access_token=token,
         user={"id": user.id, "name": user.name, "role": user.role, "department": user.department}
@@ -75,7 +79,7 @@ class ProfileUpdate(BaseModel):
 
 
 @router.put("/profile")
-def update_profile(data: ProfileUpdate, user=Depends(get_current_user), db=Depends(get_db)):
+def update_profile(data: ProfileUpdate, request: Request, user=Depends(get_current_user), db=Depends(get_db)):
     if data.username is not None:
         if user.role == "admin":
             pass
@@ -92,17 +96,19 @@ def update_profile(data: ProfileUpdate, user=Depends(get_current_user), db=Depen
         salt = secrets.token_hex(16)
         h = hashlib.sha256((salt + data.password).encode()).hexdigest()
         user.password_hash = salt + ":" + h
+    log_action(db, user.username, "修改资料", user.username, "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return {"message": "保存成功"}
 
 
 @router.post("/register")
-def register(req: LoginRequest, db = Depends(get_db)):
+def register(req: LoginRequest, request: Request, db = Depends(get_db)):
     existing = db.query(User).filter(User.username == req.username).first()
     if existing:
         raise HTTPException(status_code=400, detail="用户已存在")
     user = User(username=req.username, password_hash=_hash_pw(req.password), name=req.username, role="candidate")
     db.add(user)
     db.commit()
+    log_action(db, req.username, "注册账号", req.username, "", ip=request.client.host or "" if request.client else "")
     db.refresh(user)
     return {"id": user.id, "message": "注册成功"}

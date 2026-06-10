@@ -4,6 +4,7 @@ from sqlalchemy import func
 from fastapi.responses import StreamingResponse
 from database import get_db
 from models import ExamPaper, Exam, User
+from logger import log_action
 from .auth import get_current_user
 
 router = APIRouter(prefix="/api/results", tags=["results"])

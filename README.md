@@ -12,6 +12,8 @@
 
 ![登录页面](screenshots/登录.png)
 
+![仪表盘](screenshots/仪表盘.png)
+
 ## 目录
 
 - [项目简介](#项目简介)
@@ -116,6 +118,8 @@ npx vite --host
 
 ![考核管理](screenshots/考试管理.png)
 
+![考试详情](screenshots/考试详情.png)
+
 - 三种考核类型：**正式考核**（限时+人工批改简答）、**练习模式**（不限时+即时反馈）、**模拟考试**（限时+全自动评分）
 - 智能组卷：按题型分布精确控制每种题型的数量
 - 题型分布与题目数量联动（调分布同步题数，改题数清空分布）
@@ -155,51 +159,57 @@ npx vite --host
 
 ---
 
-## 系统架构
+## 系统架构（来自知识图谱）
 
-```
-┌──────────────────────────────────────────────┐
-│              前端 (Vue 3 + Element Plus)        │
-│  登录 → 仪表盘 → 题库 → 考核 → 考试 → 成绩    │
-└──────────────────┬───────────────────────────┘
-                   │ HTTP API
-┌──────────────────┴───────────────────────────┐
-│          后端 (FastAPI + SQLAlchemy)           │
-│  认证 → 题库 → 考核 → 答题 → 成绩 → 设置      │
-└──────────────────┬───────────────────────────┘
-                   │ ORM
-┌──────────────────┴───────────────────────────┐
-│         SQLite / PostgreSQL / MySQL            │
-│  用户表 / 题库表 / 考核表 / 试卷表            │
-└──────────────────────────────────────────────┘
-```
+基于代码分析，系统分为 **3 个架构层**：
 
-### 项目结构
+- **后端服务层** (16 files): FastAPI 后端，包含 API 路由、数据模型、数据库和配置
+- **前端界面层** (3 files): Vue 3 前端 SPA，包含页面组件和构建配置
+- **文档配置层** (1 files): 项目文档和根级配置文件
 
-```
-axus-examination/
-├── backend/               # FastAPI 后端
-│   ├── main.py            # 应用入口
-│   ├── config.py          # 配置
-│   ├── database.py        # 数据库连接
-│   ├── models.py          # 数据模型
-│   ├── schemas.py         # Pydantic 模型
-│   ├── routers/           # 11 个 API 模块
-│   └── exam.db            # SQLite 数据库文件
-├── src/                   # Vue 3 前端
-│   ├── main.js            # 入口
-│   ├── api.js             # API 封装
-│   ├── App.vue            # 根组件
-│   ├── router/            # 路由
-│   ├── components/        # 通用组件
-│   └── views/             # 14 个页面
-├── public/                # 静态资源
-├── package.json
-├── vite.config.js
-└── start.bat              # 一键启动脚本
-```
 
----
+### API 路由模块
+
+系统后端包含 **11 个 API 路由模块**：
+
+| 模块 | 文件 | 说明 |
+|------|------|------|
+| `answers` | `backend/routers/answers.py` | answers 模块 API 路由 |
+| `auth` | `backend/routers/auth.py` | auth 模块 API 路由 |
+| `categories` | `backend/routers/categories.py` | categories 模块 API 路由 |
+| `dashboard` | `backend/routers/dashboard.py` | dashboard 模块 API 路由 |
+| `exams` | `backend/routers/exams.py` | exams 模块 API 路由 |
+| `logs` | `backend/routers/logs.py` | logs 模块 API 路由 |
+| `notifications` | `backend/routers/notifications.py` | notifications 模块 API 路由 |
+| `questions` | `backend/routers/questions.py` | questions 模块 API 路由 |
+| `results` | `backend/routers/results.py` | results 模块 API 路由 |
+| `settings` | `backend/routers/settings.py` | settings 模块 API 路由 |
+| `users` | `backend/routers/users.py` | users 模块 API 路由 |
+
+
+### 代码导览
+
+  1. **项目概览**: AXUS 企业考核系统：基于 FastAPI + Vue 3 的全栈考核管理平台，支持题库管理、考核组织、成绩查询等功能
+  2. **后端入口与配置**: FastAPI 应用入口，注册路由和中间件；数据库引擎由 SQLAlchemy 管理
+  3. **数据模型**: User、Question、Exam、ExamPaper、Category 等核心 ORM 模型定义
+  4. **API 路由层**: 11 个路由模块覆盖认证、题库、考核、成绩、日志、用户管理等全部功能
+  5. **操作日志系统**: log_action 函数支持全模块操作记录，含 IP 采集
+  6. **前端界面**: Vue 3 + Vite SPA，包含页面路由、组件和构建配置
+
+
+### 知识图谱
+
+系统知识图谱包含：
+- **节点数**: 20（文件 + 配置 + 文档）
+- **边数**: 36（导入依赖、调用关系）
+- **架构层数**: 3
+- **导览步骤**: 6
+- **分析时间**: 2026-06-10T16:37:47+08:00
+- **Git Commit**: `b9eb5230410c`
+
+> 知识图谱文件：`.understand-anything/knowledge-graph.json`
+> 可视化仪表盘：运行 `/understand-dashboard` 启动
+
 
 ## 数据库与系统兼容性
 
@@ -706,4 +716,4 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 [MIT License](LICENSE)
 
-Copyright (c) 2026 达咩
+Copyright (c) 2026 达咩
