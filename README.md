@@ -1,4 +1,4 @@
-﻿# AcuSeek企业考核系统
+# AcuSeek 企业考核系统
 
 > 基于 Vue 3 + FastAPI + SQLite 的企业在线考核管理系统
 
@@ -717,5 +717,6 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 [MIT License](LICENSE)
 
 Copyright (c) 2026 达咩
+
 
 
