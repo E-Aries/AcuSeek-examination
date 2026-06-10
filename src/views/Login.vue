@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="login-page">
     <!-- Decorative Background -->
     <div class="login-bg">
@@ -311,7 +311,7 @@ async function handleLogin() {
   text-align: center;
   color: white;
 }
-.axus-logo {
+.acuseek-logo {
   width: 64px;
   height: 64px;
   margin-bottom: 20px;
