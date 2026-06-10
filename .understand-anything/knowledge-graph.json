@@ -1,8 +1,8 @@
-﻿{
+{
   "version": "1.0.0",
   "project": {
-    "name": "AcuSeek Enterprise Examination System",
-    "description": "Enterprise examination management system, supports question banks, exam organization, score queries",
+    "name": "AcuSeek Enterprise Examination Management System",
+    "description": "Enterprise examination management system supporting question banks, exam organization, score queries",
     "languages": [
       "Python",
       "JavaScript",
@@ -521,7 +521,7 @@
     {
       "order": 1,
       "title": "项目概览",
-      "description": "AcuSeek 企业考核系统：基于 FastAPI + Vue 3 的全栈考核管理平台，支持题库管理、考核组织、成绩查询等功能",
+      "description": "AcuSeek Enterprise Examination Management System: a full-stack exam management platform based on FastAPI + Vue 3",
       "nodeIds": [
         "file:README.md"
       ]
