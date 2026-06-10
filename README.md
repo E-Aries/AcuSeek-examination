@@ -10,10 +10,6 @@
 
 ---
 
-![登录页面](screenshots/login.png)
-
-![仪表盘](screenshots/dashboard.png)
-
 ## 目录
 
 - [项目简介](#项目简介)
@@ -107,18 +103,12 @@ npx vite --host
 
 ### 题库管理
 
-![题库管理](screenshots/question-bank.png)
-
 - 五种题型：单选、多选、判断、填空、简答
 - 每题可设置分类、难度（1-3 级）、分值、答案与解析
 - 批量导入导出、批量分类修改、批量删除
 - 分类管理（创建/编辑/删除/排序）
 
 ### 考核管理
-
-![考核管理](screenshots/exam-management.png)
-
-![考试详情](screenshots/exam-detail.png)
 
 - 三种考核类型：**正式考核**（限时+人工批改简答）、**练习模式**（不限时+即时反馈）、**模拟考试**（限时+全自动评分）
 - 智能组卷：按题型分布精确控制每种题型的数量
@@ -131,8 +121,6 @@ npx vite --host
 
 ### 考试答题
 
-![考生考试界面](screenshots/考生-exam-management.png)
-
 - 限时答题 + 自动计时（超时自动交卷）
 - 答题卡导航 + 跳至下一道未答
 - 切屏检测（超过 3 次自动交卷）
@@ -141,8 +129,6 @@ npx vite --host
 
 ### 成绩分析
 
-![成绩详情](screenshots/score-detail.png)
-
 - 等级制评分：优秀 ≥95% / 良好 ≥80% / 通过 ≥60% / 未通过 <60%
 - 成绩详情页包含：分数环与等级徽章、各分类得分统计、每题展开对比、难度得分分析、成绩分布图
 - 逐题批改（正式考试的简答题人工评分，每题得分单独保存）
@@ -150,8 +136,6 @@ npx vite --host
 - 管理员成绩统览 + CSV 导出
 
 ### 系统设置
-
-![系统设置](screenshots/system-settings.png)
 
 - 品牌文字自定义（系统名称、公司名、版权文字、版本号）
 - Logo 上传（登录页 Logo、导航栏 Logo、Favicon）
@@ -166,7 +150,6 @@ npx vite --host
 - **后端服务层** (16 files): FastAPI 后端，包含 API 路由、数据模型、数据库和配置
 - **前端界面层** (3 files): Vue 3 前端 SPA，包含页面组件和构建配置
 - **文档配置层** (1 files): 项目文档和根级配置文件
-
 
 ### API 路由模块
 
@@ -186,7 +169,6 @@ npx vite --host
 | `settings` | `backend/routers/settings.py` | settings 模块 API 路由 |
 | `users` | `backend/routers/users.py` | users 模块 API 路由 |
 
-
 ### 代码导览
 
   1. **项目概览**: AcuSeek 企业考核系统：基于 FastAPI + Vue 3 的全栈考核管理平台，支持题库管理、考核组织、成绩查询等功能
@@ -195,7 +177,6 @@ npx vite --host
   4. **API 路由层**: 11 个路由模块覆盖认证、题库、考核、成绩、日志、用户管理等全部功能
   5. **操作日志系统**: log_action 函数支持全模块操作记录，含 IP 采集
   6. **前端界面**: Vue 3 + Vite SPA，包含页面路由、组件和构建配置
-
 
 ### 知识图谱
 
@@ -209,7 +190,6 @@ npx vite --host
 
 > 知识图谱文件：`.understand-anything/knowledge-graph.json`
 > 可视化仪表盘：运行 `/understand-dashboard` 启动
-
 
 ## 数据库与系统兼容性
 
@@ -279,8 +259,6 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 #### 1.4 分类管理
 
-![分类管理](screenshots/category-management.png)
-
 在「分类管理」页面可以创建、编辑、删除题目分类，调整分类排序。
 
 ### 2. 考核管理
@@ -302,8 +280,6 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 3. 点击「创建」→ 系统自动生成试卷
 
 #### 2.2 考核类型对比
-
-![组卷管理](screenshots/paper-generate.png)
 
 | 特性 | 正式考核 | 练习模式 | 模拟考试 |
 |------|----------|----------|----------|
@@ -378,8 +354,6 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 #### 4.1 管理员成绩查询
 
-![成绩查询](screenshots/score-query.png)
-
 1. 进入「成绩查询」页面
 2. 查看按考核汇总的统计数据：参考人数、通过率、平均分、最高分
 3. 点击任一考核卡片进入详情
@@ -433,11 +407,7 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 ### 6. 用户管理
 
-![用户管理](screenshots/user-management.png)
-
 管理员可在「用户管理」页面查看所有用户列表，支持创建、编辑、删除用户账号。
-
-![操作日志](screenshots/operation-logs.png)
 
 ---
 
@@ -511,8 +481,6 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 ### 2. 查询成绩
 
 #### 2.1 我的成绩
-
-![考生成绩查询](screenshots/考生score-query.png)
 
 登录后进入「成绩查询」查看所有考试记录，每张卡片显示：
 
@@ -702,10 +670,6 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 ## 联系我们
 
-<img src="screenshots/contact-us.jpg" width="400" />
-
-<img src="screenshots/contact-us-2.jpg" width="400" />
-
 目前开放了微信群与QQ群，QQ群：1050686944（Linux入门到入土）
 
 如果遇到加群被拒绝的情况，说明交流群已满，请先加微信，我们将根据您的情况，拉到对应的QQ群或微信群中，欢迎大家一起前来交流。
@@ -717,6 +681,4 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 [MIT License](LICENSE)
 
 Copyright (c) 2026 达咩
-
-
 
