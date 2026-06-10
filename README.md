@@ -10,9 +10,9 @@
 
 ---
 
-![登录页面](screenshots/登录.png)
+![登录页面](screenshots/login.png)
 
-![仪表盘](screenshots/仪表盘.png)
+![仪表盘](screenshots/dashboard.png)
 
 ## 目录
 
@@ -107,7 +107,7 @@ npx vite --host
 
 ### 题库管理
 
-![题库管理](screenshots/题库管理.png)
+![题库管理](screenshots/question-bank.png)
 
 - 五种题型：单选、多选、判断、填空、简答
 - 每题可设置分类、难度（1-3 级）、分值、答案与解析
@@ -116,9 +116,9 @@ npx vite --host
 
 ### 考核管理
 
-![考核管理](screenshots/考试管理.png)
+![考核管理](screenshots/exam-management.png)
 
-![考试详情](screenshots/考试详情.png)
+![考试详情](screenshots/exam-detail.png)
 
 - 三种考核类型：**正式考核**（限时+人工批改简答）、**练习模式**（不限时+即时反馈）、**模拟考试**（限时+全自动评分）
 - 智能组卷：按题型分布精确控制每种题型的数量
@@ -131,7 +131,7 @@ npx vite --host
 
 ### 考试答题
 
-![考生考试界面](screenshots/考生-考试管理.png)
+![考生考试界面](screenshots/考生-exam-management.png)
 
 - 限时答题 + 自动计时（超时自动交卷）
 - 答题卡导航 + 跳至下一道未答
@@ -141,7 +141,7 @@ npx vite --host
 
 ### 成绩分析
 
-![成绩详情](screenshots/成绩详情.png)
+![成绩详情](screenshots/score-detail.png)
 
 - 等级制评分：优秀 ≥95% / 良好 ≥80% / 通过 ≥60% / 未通过 <60%
 - 成绩详情页包含：分数环与等级徽章、各分类得分统计、每题展开对比、难度得分分析、成绩分布图
@@ -151,7 +151,7 @@ npx vite --host
 
 ### 系统设置
 
-![系统设置](screenshots/系统设置.png)
+![系统设置](screenshots/system-settings.png)
 
 - 品牌文字自定义（系统名称、公司名、版权文字、版本号）
 - Logo 上传（登录页 Logo、导航栏 Logo、Favicon）
@@ -279,7 +279,7 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 #### 1.4 分类管理
 
-![分类管理](screenshots/分类管理.png)
+![分类管理](screenshots/category-management.png)
 
 在「分类管理」页面可以创建、编辑、删除题目分类，调整分类排序。
 
@@ -303,7 +303,7 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 #### 2.2 考核类型对比
 
-![组卷管理](screenshots/组卷管理.png)
+![组卷管理](screenshots/paper-generate.png)
 
 | 特性 | 正式考核 | 练习模式 | 模拟考试 |
 |------|----------|----------|----------|
@@ -378,7 +378,7 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 #### 4.1 管理员成绩查询
 
-![成绩查询](screenshots/成绩查询.png)
+![成绩查询](screenshots/score-query.png)
 
 1. 进入「成绩查询」页面
 2. 查看按考核汇总的统计数据：参考人数、通过率、平均分、最高分
@@ -433,11 +433,11 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 ### 6. 用户管理
 
-![用户管理](screenshots/用户管理.png)
+![用户管理](screenshots/user-management.png)
 
 管理员可在「用户管理」页面查看所有用户列表，支持创建、编辑、删除用户账号。
 
-![操作日志](screenshots/操作日志.png)
+![操作日志](screenshots/operation-logs.png)
 
 ---
 
@@ -512,7 +512,7 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 #### 2.1 我的成绩
 
-![考生成绩查询](screenshots/考生成绩查询.png)
+![考生成绩查询](screenshots/考生score-query.png)
 
 登录后进入「成绩查询」查看所有考试记录，每张卡片显示：
 
@@ -702,9 +702,9 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 ## 联系我们
 
-<img src="screenshots/联系我们.jpg" width="400" />
+<img src="screenshots/contact-us.jpg" width="400" />
 
-<img src="screenshots/联系我们2.jpg" width="400" />
+<img src="screenshots/contact-us-2.jpg" width="400" />
 
 目前开放了微信群与QQ群，QQ群：1050686944（Linux入门到入土）
 
