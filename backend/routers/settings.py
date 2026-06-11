@@ -46,7 +46,12 @@ def update_settings(data: SettingsUpdate, request: Request, user = Depends(get_c
     if data.default_duration is not None:
         mapping["default_duration"] = str(data.default_duration)
     for k, v in mapping.items():
-        db.execute(text("INSERT INTO system_settings (key, value, updated_at) VALUES (:k, :v, CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value = :v, updated_at = CURRENT_TIMESTAMP"), {"k": k, "v": v})
+        from models import SystemSetting as SS
+        existing = db.query(SS).filter(SS.key == k).first()
+        if existing:
+            existing.value = v
+        else:
+            db.add(SS(key=k, value=v))
     log_action(db, user.username, "修改系统设置", "", "", ip=request.client.host or "" if request.client else "")
     db.commit()
 
@@ -63,7 +68,12 @@ def reset_brand(request: Request, user = Depends(get_current_user), db=Depends(g
         "version_text": "v2.0.1",
     }
     for k, v in defaults.items():
-        db.execute(text("INSERT INTO system_settings (key, value, updated_at) VALUES (:k, :v, CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value = :v, updated_at = CURRENT_TIMESTAMP"), {"k": k, "v": v})
+        from models import SystemSetting as SS
+        existing = db.query(SS).filter(SS.key == k).first()
+        if existing:
+            existing.value = v
+        else:
+            db.add(SS(key=k, value=v))
     log_action(db, user.username, "还原系统默认", "", "", ip=request.client.host or "" if request.client else "")
     db.commit()
     return get_settings(db)
