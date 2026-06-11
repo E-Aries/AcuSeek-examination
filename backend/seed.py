@@ -1,4 +1,6 @@
 import hashlib, secrets
+import os
+os.chdir(os.path.dirname(__file__))
 from database import SessionLocal, engine, Base
 from models import User, Question, Category
 
