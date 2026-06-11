@@ -33,10 +33,8 @@ def submit_answers(paper_id: int, data: AnswerSubmit, request: Request, user = D
         if not question: continue
 
         user_ans = data.answers.get(qid, "")
-        if question.type == "判断" and question.options:
-            opt_map = {o["label"]: o["text"] for o in question.options}
-            user_ans_text = opt_map.get(user_ans, user_ans)
-            if user_ans_text == question.answer: total += question.score
+        if question.type == "判断":
+            if user_ans == question.answer: total += question.score
         elif question.type == "单选":
             if user_ans == question.answer: total += question.score
         elif question.type == "多选":
@@ -64,10 +62,8 @@ def submit_answers(paper_id: int, data: AnswerSubmit, request: Request, user = D
         if not question: continue
         user_ans = data.answers.get(qid, "")
         correct = False
-        if question.type == "判断" and question.options:
-            opt_map = {o["label"]: o["text"] for o in question.options}
-            user_ans_text = opt_map.get(user_ans, user_ans)
-            correct = user_ans_text == question.answer
+        if question.type == "判断":
+            correct = user_ans == question.answer
         elif question.type == "单选":
             correct = user_ans == question.answer
         elif question.type == "多选":
