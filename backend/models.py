@@ -62,3 +62,33 @@ class ExamPaper(Base):
     started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     submitted_at = Column(DateTime, nullable=True)
     duration_used = Column(Integer, default=0)
+
+
+class OperationLog(Base):
+    __tablename__ = "operation_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), default="")
+    action = Column(String(50), default="")
+    target = Column(String(200), default="")
+    detail = Column(Text, default="")
+    ip = Column(String(50), default="")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class SystemSetting(Base):
+    __tablename__ = "system_settings"
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(100), unique=True, nullable=False)
+    value = Column(Text, default="")
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, default=0)
+    title = Column(String(200), default="")
+    content = Column(Text, default="")
+    type = Column(String(20), default="system")
+    is_read = Column(Integer, default=0)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
