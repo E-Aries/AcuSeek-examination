@@ -145,10 +145,13 @@ onMounted(async () => {
 const createForm = reactive({ name: "", type: "正式", duration: 60, questionCount: 30, passScore: 60, strategy: "random", categories: [], distribution: {} });
 // 当打开创建弹窗时，预填充题型分布
 watch(showCreate, (val) => {
-  if (val && questionTypes.value.length > 0 && Object.keys(createForm.distribution).length === 0) {
+  if (val) {
+    api.categories.list().then(r => { categories.value = (r.items || []); }).catch(() => {});
+    if (questionTypes.value.length > 0 && Object.keys(createForm.distribution).length === 0) {
     const dist = {};
     questionTypes.value.forEach(type => { dist[type] = { count: 0 }; });
     createForm.distribution = dist;
+    }
   }
 });
 
