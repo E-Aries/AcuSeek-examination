@@ -60,7 +60,7 @@ def update_user(uid: int, data: UpdateUserSchema, request: Request, admin = Depe
     return {"message": "更新成功"}
 
 @router.delete("/{uid}")
-def delete_user(uid: int, admin = Depends(get_current_user), db = Depends(get_db)):
+def delete_user(uid: int, request: Request, admin = Depends(get_current_user), db = Depends(get_db)):
     user = db.query(User).filter(User.id == uid).first()
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")

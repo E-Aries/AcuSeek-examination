@@ -215,11 +215,15 @@ watch(multiAnswer, (val) => {
 
 onMounted(async () => {
   try {
-    const [qRes, catRes] = await Promise.all([api.questions.list({size:100}), api.categories.list()]);
-    questions.value = (qRes.items || []);
-    total.value = qRes.total || 0;
+    await loadQuestions();
+    const catRes = await api.categories.list();
     categories.value = (catRes.items || []);
   } catch(e) { console.error(e); }
+});
+
+watch([filterType, filterCategory], () => {
+  currentPage.value = 1;
+  loadQuestions();
 });
 
 const filteredQuestions = computed(() => {
@@ -399,7 +403,17 @@ function isCorrectAnswer(label) {
   return d.answer === label;
 }
 
-async function loadQuestions() {}
+async function loadQuestions() {
+  try {
+    const params = {page: currentPage.value, size: 20};
+    if (filterType.value) params.type = filterType.value;
+    if (filterCategory.value) params.category = filterCategory.value;
+    if (search.value) params.search = search.value;
+    const qRes = await api.questions.list(params);
+    questions.value = (qRes.items || []);
+    total.value = qRes.total || 0;
+  } catch(e) {}
+}
 </script>
 
 <style scoped>
