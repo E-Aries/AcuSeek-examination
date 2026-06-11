@@ -231,10 +231,7 @@
         </el-form-item>
         <el-form-item label="关联分类">
           <el-select v-model="editForm.categories" multiple placeholder="选择分类" style="width:100%">
-            <el-option label="售后流程" value="售后流程" />
-            <el-option label="产品知识" value="产品知识" />
-            <el-option label="故障处理" value="故障处理" />
-            <el-option label="服务规范" value="服务规范" />
+            <el-option v-for="c in categoryList" :key="c.id" :label="c.name" :value="c.name" />
           </el-select>
         </el-form-item>
       </el-form>
