@@ -337,7 +337,11 @@ function selectOption(value) {
   if (practiceMode.value) {
     const q = currentQuestion.value;
     if (!q.id) return;
-    const correct = value === q.answer;
+    let correct = value === q.answer;
+    if (q.type === "判断" && q.options) {
+      const j_map = Object.fromEntries(q.options.map(o => [o.label, o.text || o.label]));
+      correct = j_map[value] === q.answer || value === q.answer;
+    }
     const qid = String(q.id);
     practiceFeedback.value[qid] = { correct, correctAnswer: q.answer, userAnswer: value, explanation: q.explanation || "" };
     answeredLocked.value[currentIndex.value] = true;

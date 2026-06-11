@@ -34,7 +34,8 @@ def submit_answers(paper_id: int, data: AnswerSubmit, request: Request, user = D
 
         user_ans = data.answers.get(qid, "")
         if question.type == "判断":
-            if user_ans == question.answer: total += question.score
+            j_map = {o["label"]: o["text"] or o["label"] for o in (question.options or [])}
+            if j_map.get(user_ans) == question.answer: total += question.score
         elif question.type == "单选":
             if user_ans == question.answer: total += question.score
         elif question.type == "多选":
@@ -63,7 +64,8 @@ def submit_answers(paper_id: int, data: AnswerSubmit, request: Request, user = D
         user_ans = data.answers.get(qid, "")
         correct = False
         if question.type == "判断":
-            correct = user_ans == question.answer
+            j_map = {o["label"]: o["text"] or o["label"] for o in (question.options or [])}
+            correct = j_map.get(user_ans) == question.answer
         elif question.type == "单选":
             correct = user_ans == question.answer
         elif question.type == "多选":
