@@ -797,6 +797,57 @@ DATABASE_URL = "postgresql://user:password@localhost:5432/exam_db"
 
 ---
 
+## 运维指南
+
+### 更新代码（热更新）
+
+```bash
+cd /opt/AcuSeek
+git pull
+pkill -f uvicorn
+pkill -f vite
+cd backend && nohup python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 > /var/log/acuseek-backend.log 2>&1 &
+cd .. && nohup npx vite --host > /var/log/acuseek-frontend.log 2>&1 &
+```
+
+保存为 `deploy.sh`，一行搞定：
+
+```bash
+chmod +x deploy.sh && ./deploy.sh
+```
+
+### 查看服务状态
+
+```bash
+# 查看进程
+ps aux | grep -E "uvicorn|vite" | grep -v grep
+
+# 查看端口
+ss -tlnp | grep -E "8000|5173"
+
+# 查看日志
+tail -f /var/log/acuseek-backend.log
+tail -f /var/log/acuseek-frontend.log
+
+# 测试接口
+curl http://localhost:8000/api/health
+```
+
+### 重启服务
+
+```bash
+pkill -f uvicorn
+pkill -f vite
+cd /opt/AcuSeek/backend && nohup python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 > /var/log/acuseek-backend.log 2>&1 &
+cd /opt/AcuSeek && nohup npx vite --host > /var/log/acuseek-frontend.log 2>&1 &
+```
+
+保存为 `restart.sh`：
+
+```bash
+chmod +x restart.sh && ./restart.sh
+```
+
 ## 许可证
 
 [MIT License](LICENSE)
