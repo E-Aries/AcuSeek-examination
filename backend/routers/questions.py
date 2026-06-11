@@ -152,9 +152,14 @@ def batch_export_questions(data: dict, user = Depends(get_current_user), db = De
     output = io.StringIO()
     output.write("\ufeff")
     writer = csv.writer(output)
-    writer.writerow(["题型", "分类", "题目内容", "选项", "答案", "解析", "难度", "分值"])
+    writer.writerow(["题型", "分类", "题目内容", "选项A", "选项B", "选项C", "选项D", "选项E", "选项F", "选项G", "选项H", "答案", "解析", "分值", "难度"])
     for q in questions:
-        writer.writerow([q.type, q.category, q.content, json.dumps(q.options or [], ensure_ascii=False) if q.options else "", q.answer or "", q.explanation or "", q.difficulty, q.score])
+        opts = q.options or []
+        cells = [q.type, q.category, q.content]
+        for i in range(8):
+            cells.append(opts[i]["text"] if i < len(opts) else "")
+        cells += [q.answer or "", q.explanation or "", q.score, q.difficulty]
+        writer.writerow(cells)
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=questions_export.csv"})
 
 @router.put("/batch-category")
