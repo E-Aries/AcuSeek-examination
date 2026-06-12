@@ -15,8 +15,8 @@ class User(Base):
 class Question(Base):
     __tablename__ = "questions"
     id = Column(Integer, primary_key=True, index=True)
-    type = Column(String(10))
-    category = Column(String(50))
+    type = Column(String(10), index=True)
+    category = Column(String(50), index=True)
     content = Column(Text)
     options = Column(JSON, nullable=True)
     answer = Column(Text, default="")
@@ -39,7 +39,7 @@ class Exam(Base):
     __tablename__ = "exams"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(200))
-    type = Column(String(10))
+    type = Column(String(10), index=True)
     status = Column(String(10), default="未开始")
     duration = Column(Integer, default=60)
     question_count = Column(Integer, default=30)

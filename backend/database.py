@@ -20,6 +20,12 @@ def _init_db():
             conn.execute(text("PRAGMA journal_mode=WAL"))
             conn.execute(text("PRAGMA synchronous=NORMAL"))
             conn.execute(text("PRAGMA cache_size=-8000"))  # 8MB cache
+            # 创建常用查询索引
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_questions_type ON questions(type)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_questions_category ON questions(category)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_questions_created ON questions(created_at)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_operation_logs_time ON operation_logs(created_at)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_exam_papers_status ON exam_papers(status)"))
             conn.commit()
 _init_db()
 
