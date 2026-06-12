@@ -32,9 +32,14 @@ def result_stats(db = Depends(get_db)):
 @router.get("/by-exam")
 def results_by_exam(db = Depends(get_db)):
     exams = db.query(Exam).order_by(Exam.id.desc()).all()
+    exam_ids = [e.id for e in exams]
+    all_papers = {}
+    if exam_ids:
+        for p in db.query(ExamPaper).filter(ExamPaper.exam_id.in_(exam_ids)).all():
+            all_papers.setdefault(p.exam_id, []).append(p)
     items = []
     for e in exams:
-        papers = db.query(ExamPaper).filter(ExamPaper.exam_id == e.id).all()
+        papers = all_papers.get(e.exam_id, [])
         submitted = [p for p in papers if p.status in ("已完成", "待批改")]
         if not submitted and not papers:
             continue
