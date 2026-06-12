@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Category
 from logger import log_action
+from cache import cache_get, cache_set, cache_del
 from starlette.requests import Request
 from .auth import get_current_user
 
@@ -10,8 +11,12 @@ router = APIRouter(prefix="/api/categories", tags=["categories"])
 
 @router.get("")
 def list_categories(db = Depends(get_db)):
+    cached = cache_get("categories")
+    if cached is not None: return cached
     cats = db.query(Category).order_by(Category.sort, Category.id).all()
-    return {"items": [{"id": c.id, "name": c.name, "sort": c.sort} for c in cats]}
+    result = {"items": [{"id": c.id, "name": c.name, "sort": c.sort} for c in cats]}
+    cache_set("categories", result, 300)
+    return result
 
 @router.post("")
 def create_category(data: dict, request: Request, user = Depends(get_current_user), db = Depends(get_db)):
@@ -24,6 +29,7 @@ def create_category(data: dict, request: Request, user = Depends(get_current_use
     c = Category(name=name, sort=data.get("sort", 0))
     log_action(db, user.username, "创建分类", c.name, "", ip=request.client.host or "" if request.client else "")
     db.add(c)
+    cache_del('categories')
     db.commit()
     db.refresh(c)
     return {"id": c.id, "name": c.name, "sort": c.sort}
@@ -44,6 +50,7 @@ def update_category(cid: int, data: dict, request: Request, user = Depends(get_c
     if "sort" in data:
         c.sort = data["sort"]
     log_action(db, user.username, "修改分类", c.name, "", ip=request.client.host or "" if request.client else "")
+    cache_del('categories')
     db.commit()
     return {"id": c.id, "name": c.name, "sort": c.sort}
 
@@ -58,5 +65,6 @@ def delete_category(cid: int, request: Request, user = Depends(get_current_user)
         raise HTTPException(status_code=400, detail=f"该分类下还有 {count} 道题目，请先移除或改分类")
     log_action(db, user.username, "删除分类", c.name, "", ip=request.client.host or "" if request.client else "")
     db.delete(c)
+    cache_del('categories')
     db.commit()
     return {"message": "删除成功"}

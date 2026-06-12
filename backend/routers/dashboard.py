@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from datetime import datetime, timezone
 from database import get_db
+from cache import cache_get, cache_set
 from models import Exam, ExamPaper, Question, User
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -52,6 +53,7 @@ def get_dashboard(db: Session = Depends(get_db)):
     # ── 待批改数 ──
     pending = db.query(func.count(ExamPaper.id)).filter(ExamPaper.status == "待批改").scalar()
 
+    cache_set("dashboard", result, 60)
     return {
         "category_questions": category_questions,
         "monthly_stats": monthly_data,

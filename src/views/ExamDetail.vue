@@ -551,7 +551,12 @@ function editOnQCountChange(val) {
   }
 }
 
-function openEditDialog() {
+async function openEditDialog() {
+  try {
+    const r = await api.categories.list();
+    categoryList.value = (r.items || []);
+  } catch(e) {}
+
   editForm.name = exam.value.name
   editForm.type = exam.value.type
   editForm.duration = exam.value.duration
